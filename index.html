@@ -309,6 +309,10 @@
                                     <option value="38">宽松</option>
                                 </select>
                             </div>
+                            <div class="settings-item">
+                                <input type="checkbox" id="user-needs-clean-symbols" checked>
+                                <label for="user-needs-clean-symbols">去除*和-等符号</label>
+                            </div>
                         </div>
                     </div>
                     <textarea class="editor" id="user-needs-editor" placeholder="粘贴AI生成的用户需求分析内容..."></textarea>
@@ -349,6 +353,10 @@
                                     <option value="34" selected>标准</option>
                                     <option value="38">宽松</option>
                                 </select>
+                            </div>
+                            <div class="settings-item">
+                                <input type="checkbox" id="high-pay-clean-symbols" checked>
+                                <label for="high-pay-clean-symbols">去除*和-等符号</label>
                             </div>
                         </div>
                     </div>
@@ -391,6 +399,10 @@
                                     <option value="38">宽松</option>
                                 </select>
                             </div>
+                            <div class="settings-item">
+                                <input type="checkbox" id="search-intent-clean-symbols" checked>
+                                <label for="search-intent-clean-symbols">去除*和-等符号</label>
+                            </div>
                         </div>
                     </div>
                     <textarea class="editor" id="search-intent-editor" placeholder="粘贴AI生成的高意向搜索词分析内容..."></textarea>
@@ -431,6 +443,10 @@
                                     <option value="34" selected>标准</option>
                                     <option value="38">宽松</option>
                                 </select>
+                            </div>
+                            <div class="settings-item">
+                                <input type="checkbox" id="pre-needs-clean-symbols" checked>
+                                <label for="pre-needs-clean-symbols">去除*和-等符号</label>
                             </div>
                         </div>
                     </div>
@@ -473,6 +489,10 @@
                                     <option value="38">宽松</option>
                                 </select>
                             </div>
+                            <div class="settings-item">
+                                <input type="checkbox" id="selling-points-clean-symbols" checked>
+                                <label for="selling-points-clean-symbols">去除*和-等符号</label>
+                            </div>
                         </div>
                     </div>
                     <textarea class="editor" id="selling-points-editor" placeholder="粘贴AI生成的卖点分析内容..."></textarea>
@@ -513,6 +533,10 @@
                                     <option value="34" selected>标准</option>
                                     <option value="38">宽松</option>
                                 </select>
+                            </div>
+                            <div class="settings-item">
+                                <input type="checkbox" id="user-thoughts-clean-symbols" checked>
+                                <label for="user-thoughts-clean-symbols">去除*和-等符号</label>
                             </div>
                         </div>
                     </div>
@@ -555,6 +579,10 @@
                                     <option value="38">宽松</option>
                                 </select>
                             </div>
+                            <div class="settings-item">
+                                <input type="checkbox" id="content-ideas-clean-symbols" checked>
+                                <label for="content-ideas-clean-symbols">去除*和-等符号</label>
+                            </div>
                         </div>
                     </div>
                     <textarea class="editor" id="content-ideas-editor" placeholder="粘贴AI生成的引流笔记思路内容..."></textarea>
@@ -595,6 +623,10 @@
                                     <option value="34" selected>标准</option>
                                     <option value="38">宽松</option>
                                 </select>
+                            </div>
+                            <div class="settings-item">
+                                <input type="checkbox" id="project-analysis-clean-symbols" checked>
+                                <label for="project-analysis-clean-symbols">去除*和-等符号</label>
                             </div>
                         </div>
                     </div>
@@ -685,6 +717,12 @@
             return parseInt(lineHeightSelect.value);
         }
         
+        // 检查是否应该清理符号
+        function shouldCleanSymbols(tabId) {
+            const cleanSymbolsCheckbox = document.getElementById(`${tabId}-clean-symbols`);
+            return cleanSymbolsCheckbox && cleanSymbolsCheckbox.checked;
+        }
+        
         // 转换颜色为RGB
         function hexToRgb(hex) {
             hex = hex.replace(/^#/, '');
@@ -701,6 +739,40 @@
             }
             
             return [r, g, b];
+        }
+        
+        // 清理文本中的特殊符号
+        function cleanTextSymbols(text) {
+            if (!text) return text;
+            
+            // 清理前缀和markdown标记
+            let cleanedText = text.replace(/##/g, ''); // 去除所有##标记
+            cleanedText = cleanedText.replace(/\n#+\s*/g, '\n'); // 去除可能的markdown标题标记
+            cleanedText = cleanedText.replace(/\*/g, ''); // 去除所有*标记，不只是成对的**
+            // 清理各种列表标记和破折号
+            cleanedText = cleanedText.replace(/^- /gm, '');
+            cleanedText = cleanedText.replace(/^– /gm, '');
+            cleanedText = cleanedText.replace(/^— /gm, '');
+            cleanedText = cleanedText.replace(/^-/gm, '');
+            cleanedText = cleanedText.replace(/^–/gm, '');
+            cleanedText = cleanedText.replace(/^—/gm, '');
+            
+            return cleanedText;
+        }
+        
+        // 处理符号清除复选框的变化
+        function handleCleanSymbolChange(tabId) {
+            const editor = document.getElementById(`${tabId}-editor`);
+            const cleanSymbolsCheckbox = document.getElementById(`${tabId}-clean-symbols`);
+            
+            if (cleanSymbolsCheckbox.checked) {
+                // 如果勾选了"去除符号"选项，立即处理文本
+                editor.value = cleanTextSymbols(editor.value);
+            } 
+            // 如果取消勾选，我们不能自动恢复原始格式，因为信息已丢失
+            
+            // 保存到本地存储
+            localStorage.setItem(`marketingTool-${tabId}`, editor.value);
         }
 
         // 初始化标签切换
@@ -777,8 +849,19 @@
                 // 清理前缀和markdown标记
                 let cleanedText = text.replace(/^好的[，,].*?[。\n]/, '');
                 cleanedText = cleanedText.replace(/^我来分析.*?[。\n]/, '');
+                
+                // 因为文本框中的内容可能已经被清理过符号，这里只应用未处理过的清理
                 cleanedText = cleanedText.replace(/##/g, ''); // 去除所有##标记
                 cleanedText = cleanedText.replace(/\n#+\s*/g, '\n'); // 去除可能的markdown标题标记
+                
+                // 根据用户设置决定是否清理特殊符号（如果尚未清理）
+                if (shouldCleanSymbols(tabId)) {
+                    cleanedText = cleanTextSymbols(cleanedText);
+                }
+                cleanedText = cleanedText.replace(/\*\*/g, ''); // 去除所有**标记
+                cleanedText = cleanedText.replace(/^- /gm, ''); // 去除每行开头的- 列表标记
+                cleanedText = cleanedText.replace(/^–\s+/gm, ''); // 去除每行开头的–列表标记
+                cleanedText = cleanedText.replace(/^—\s+/gm, ''); // 去除每行开头的—列表标记
                 
                 // 创建画布
                 const canvas = document.getElementById('image-canvas');
@@ -1387,8 +1470,23 @@
                     // 清理前缀和markdown标记
                     let cleanedText = text.replace(/^好的[，,].*?[。\n]/, '');
                     cleanedText = cleanedText.replace(/^我来分析.*?[。\n]/, '');
+                    
+                    // 因为文本框中的内容可能已经被清理过符号，这里只应用未处理过的清理
                     cleanedText = cleanedText.replace(/##/g, ''); // 去除所有##标记
                     cleanedText = cleanedText.replace(/\n#+\s*/g, '\n'); // 去除可能的markdown标题标记
+                    
+                    // 根据用户设置决定是否清理特殊符号（如果尚未清理）
+                    if (shouldCleanSymbols(tabId)) {
+                        cleanedText = cleanTextSymbols(cleanedText);
+                    }
+                    cleanedText = cleanedText.replace(/\*/g, ''); // 去除所有*标记，不只是成对的**
+                    // 清理各种列表标记和破折号
+                    cleanedText = cleanedText.replace(/^- /gm, '');
+                    cleanedText = cleanedText.replace(/^– /gm, '');
+                    cleanedText = cleanedText.replace(/^— /gm, '');
+                    cleanedText = cleanedText.replace(/^-/gm, '');
+                    cleanedText = cleanedText.replace(/^–/gm, '');
+                    cleanedText = cleanedText.replace(/^—/gm, '');
                     
                     // 创建临时画布
                     const canvas = document.getElementById('image-canvas');
@@ -1640,6 +1738,14 @@
                 editor.addEventListener('input', function() {
                     localStorage.setItem(`marketingTool-${tab}`, this.value);
                 });
+                
+                // 为清理符号复选框添加事件监听器
+                const cleanSymbolsCheckbox = document.getElementById(`${tab}-clean-symbols`);
+                if (cleanSymbolsCheckbox) {
+                    cleanSymbolsCheckbox.addEventListener('change', function() {
+                        handleCleanSymbolChange(tab);
+                    });
+                }
             });
         }
         
