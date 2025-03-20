@@ -281,6 +281,7 @@
                 <button class="tab" data-tab="user-thoughts">用户心理分析</button>
                 <button class="tab" data-tab="content-ideas">引流笔记思路</button>
                 <button class="tab" data-tab="project-analysis">项目分析介绍</button>
+                <button class="tab" data-tab="low-competition">低竞争用户人群</button>
             </div>
 
             <!-- 用户需求分析 -->
@@ -644,6 +645,50 @@
             </div>
         </div>
 
+        <!-- 低竞争用户人群 -->
+        <div class="tab-content" id="low-competition">
+            <div class="analysis-container">
+                <h2>低竞争用户人群分析</h2>
+                <div class="explanation">
+                    想象一下渔民出海捕鱼的场景。大多数渔船都挤在同一片海域，因为那里曾经发现过大量的鱼群。渔船越多，每条船能捕到的鱼就越少，还得花更多的油钱和时间。但总有几个聪明的老渔民，他们会悄悄驶向人少的海域，虽然那里的鱼群体型可能小一些，却因为竞争少而能满载而归，成本却低得多。这就是商业中的"蓝海思维"。
+                </div>
+                <div class="settings-panel">
+                    <h3>图像设置</h3>
+                    <div class="settings-group">
+                        <div class="settings-item">
+                            <label for="font-size">字体大小:</label>
+                            <select id="low-competition-font-size">
+                                <option value="20">小</option>
+                                <option value="22" selected>中</option>
+                                <option value="24">大</option>
+                            </select>
+                        </div>
+                        <div class="settings-item">
+                            <label for="line-height">行高:</label>
+                            <select id="low-competition-line-height">
+                                <option value="30">紧凑</option>
+                                <option value="34" selected>标准</option>
+                                <option value="38">宽松</option>
+                            </select>
+                        </div>
+                        <div class="settings-item">
+                            <input type="checkbox" id="low-competition-clean-symbols" checked>
+                            <label for="low-competition-clean-symbols">去除*和-等符号</label>
+                        </div>
+                    </div>
+                </div>
+                <textarea class="editor" id="low-competition-editor" placeholder="粘贴AI生成的低竞争用户人群分析内容..."></textarea>
+                <div class="button-group">
+                    <button class="button" onclick="generateImage('low-competition')">导出为3:4短图</button>
+                    <button class="button secondary" onclick="generateLongImage('low-competition')">导出为长图</button>
+                    <button class="button secondary" onclick="clearEditor('low-competition')">清空内容</button>
+                </div>
+                <div class="preview-area" id="low-competition-preview">
+                    <h3>预览</h3>
+                    <img id="low-competition-image" alt="预览图">
+                </div>
+            </div>
+
         <div id="canvas-container">
             <canvas id="image-canvas"></canvas>
         </div>
@@ -663,7 +708,8 @@
             'selling-points': '#f39c12', // 橙色
             'user-thoughts': '#3498db',  // 天蓝色
             'content-ideas': '#9b59b6',  // 紫红色
-            'project-analysis': '#1abc9c' // 青绿色
+            'project-analysis': '#1abc9c', // 青绿色
+            'low-competition': '#e67e22'  // 橙红色
         };
         
         // 标题映射
@@ -675,7 +721,8 @@
             'selling-points': '卖点分析',
             'user-thoughts': '用户心理分析',
             'content-ideas': '引流笔记思路',
-            'project-analysis': '项目分析介绍'
+            'project-analysis': '项目分析介绍',
+            'low-competition': '低竞争用户人群分析'
         };
         
         // 解释映射 - 更通俗的版本
@@ -687,7 +734,8 @@
             'selling-points': '这是找出产品最能打动人的亮点。就像卖西瓜，是"特甜"还是"特解渴"还是"无籽方便吃"更能吸引人？好的卖点能一句话就击中痛点、解决犹豫，让用户立刻掏钱，不再货比三家。这能大大提高转化率和复购率。',
             'user-thoughts': '这是揭秘用户脑子里在想啥、担心啥、最在乎啥。好比相亲，了解对方喜好和顾虑才能投其所好。知道用户购买时的心理活动，咱们就能打消他们的疑虑、强化他们的期待，设计更有共鸣的营销内容，事半功倍。',
             'content-ideas': '这是设计能吸引目标用户、让他们主动来找你的内容创意。就像钓鱼，得用对鱼饵才能钓到想要的鱼。好的引流内容能激发用户的好奇心和分享欲，吸引他们主动私信咨询，顺利引导到私域继续深入沟通，提高转化率。',
-            'project-analysis': '这是对项目进行全面体检，看看它值不值得投入时间精力和金钱。就像创业前先考察市场，免得热情劲过后发现是个无底洞。好的项目分析能帮咱们看清项目的真实前景和风险，避免盲目跟风和投资亏损，做出更靠谱的决策。'
+            'project-analysis': '这是对项目进行全面体检，看看它值不值得投入时间精力和金钱。就像创业前先考察市场，免得热情劲过后发现是个无底洞。好的项目分析能帮咱们看清项目的真实前景和风险，避免盲目跟风和投资亏损，做出更靠谱的决策。',
+            'low-competition': '这是寻找被主流营销忽略的细分受众。很多时候当你觉得流量贵到无法承受时，换一个人群可能是比降价更明智的选择，其实同样的产品可以卖给完全不同的人群，而此时的价格与竞争度也会随之改变。比如月子茶这个产品，发现除了常规产妇外，还有"小月子"这个特殊人群（意外怀孕后不想要的人群），他们同样需要调养身体，而且因为心理压力更大，付费意愿可能更强。'
         };
         
         // 获取颜色
@@ -1420,7 +1468,8 @@
                     'selling-points', 
                     'user-thoughts', 
                     'content-ideas', 
-                    'project-analysis'
+                    'project-analysis',
+                    'low-competition'
                 ];
                 
                 // 筛选有内容的标签页
@@ -1722,7 +1771,8 @@
                 'selling-points', 
                 'user-thoughts', 
                 'content-ideas', 
-                'project-analysis'
+                'project-analysis',
+                'low-competition'
             ];
             
             tabs.forEach(tab => {
