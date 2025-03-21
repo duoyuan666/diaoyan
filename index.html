@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>营销分析工具（优化版）</title>
+    <title>营销分析工具（修复版）</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <style>
         body {
@@ -35,6 +35,40 @@
             color: #666;
             max-width: 700px;
             margin: 0 auto 20px;
+        }
+
+        /* 全局导出按钮样式 */
+        .global-actions {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .export-all-button {
+            background-color: #4a6cf7;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 12px 20px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 6px rgba(74, 108, 247, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .export-all-button:hover {
+            background-color: #3a5cd7;
+            box-shadow: 0 6px 8px rgba(74, 108, 247, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .export-all-button svg {
+            width: 20px;
+            height: 20px;
         }
 
         .tabs {
@@ -84,6 +118,7 @@
             border-radius: 10px;
             padding: 20px;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 50px; /* 增加底部空间，避免被右侧预览区挡住 */
         }
 
         .editor {
@@ -176,6 +211,142 @@
             display: none;
         }
 
+        /* 右侧多图预览区域样式 */
+        .multi-preview-container {
+            position: fixed;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 300px;
+            background-color: white;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            z-index: 100;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .multi-preview-container h3 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            color: #4a6cf7;
+            font-size: 16px;
+            width: 100%;
+            text-align: center;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .multi-preview-container .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: none;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            color: #999;
+        }
+
+        .multi-preview-container .close-btn:hover {
+            color: #333;
+        }
+
+        .preview-thumbnails {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 15px;
+            max-height: 200px;
+            overflow-y: auto;
+            width: 100%;
+            padding: 5px;
+        }
+
+        .preview-thumbnail {
+            width: 75px;
+            height: 100px;
+            border: 2px solid transparent;
+            border-radius: 5px;
+            cursor: pointer;
+            object-fit: cover;
+            transition: all 0.2s;
+        }
+
+        .preview-thumbnail:hover {
+            transform: scale(1.05);
+        }
+
+        .preview-thumbnail.active {
+            border-color: #4a6cf7;
+        }
+
+        .current-preview {
+            width: 100%;
+            margin-bottom: 15px;
+        }
+
+        .current-preview-title {
+            font-size: 14px;
+            color: #666;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .current-preview img {
+            max-width: 100%;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .preview-controls {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            margin-bottom: 15px;
+        }
+
+        .nav-button {
+            background-color: #f0f0f0;
+            border: none;
+            border-radius: 5px;
+            padding: 8px 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+        }
+
+        .nav-button:hover {
+            background-color: #e0e0e0;
+        }
+
+        .nav-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .preview-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 100%;
+        }
+
+        .preview-indicator {
+            text-align: center;
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
         @media (max-width: 768px) {
             .tabs {
                 overflow-x: auto;
@@ -188,6 +359,15 @@
             }
             .button-group {
                 flex-direction: column;
+            }
+            .multi-preview-container {
+                position: fixed;
+                right: 10px;
+                top: auto;
+                bottom: 10px;
+                transform: none;
+                width: 200px;
+                max-height: 50vh;
             }
         }
 
@@ -268,7 +448,18 @@
             </div>
             <h1>内容分析与导出工具</h1>
             <p class="description">将AI输出的分析内容整理并导出为精美图片，帮助你更好地理解用户需求、挖掘高付费人群、提炼卖点和创建引流内容。</p>
-            <button id="export-all-long-image" class="button" style="margin: 10px auto; display: block; background-color: #8c44f7;">导出全部内容为长图</button>
+            
+            <!-- 添加全局导出按钮 -->
+            <div class="global-actions">
+                <button class="export-all-button" onclick="exportAllLongImages()">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                    导出所有模块长图
+                </button>
+            </div>
         </header>
 
         <div class="tab-container">
@@ -281,7 +472,6 @@
                 <button class="tab" data-tab="user-thoughts">用户心理分析</button>
                 <button class="tab" data-tab="content-ideas">引流笔记思路</button>
                 <button class="tab" data-tab="project-analysis">项目分析介绍</button>
-                <button class="tab" data-tab="low-competition">低竞争用户人群</button>
             </div>
 
             <!-- 用户需求分析 -->
@@ -310,16 +500,12 @@
                                     <option value="38">宽松</option>
                                 </select>
                             </div>
-                            <div class="settings-item">
-                                <input type="checkbox" id="user-needs-clean-symbols" checked>
-                                <label for="user-needs-clean-symbols">去除*和-等符号</label>
-                            </div>
                         </div>
                     </div>
                     <textarea class="editor" id="user-needs-editor" placeholder="粘贴AI生成的用户需求分析内容..."></textarea>
                     <div class="button-group">
-                        <button class="button" onclick="generateImage('user-needs')">导出为3:4短图</button>
-                        <button class="button secondary" onclick="generateLongImage('user-needs')">导出为长图</button>
+                        <button class="button" onclick="generateImage('user-needs')">预览3:4短图</button>
+                        <button class="button secondary" onclick="generateLongImage('user-needs')">预览长图</button>
                         <button class="button secondary" onclick="clearEditor('user-needs')">清空内容</button>
                     </div>
                     <div class="preview-area" id="user-needs-preview">
@@ -355,16 +541,12 @@
                                     <option value="38">宽松</option>
                                 </select>
                             </div>
-                            <div class="settings-item">
-                                <input type="checkbox" id="high-pay-clean-symbols" checked>
-                                <label for="high-pay-clean-symbols">去除*和-等符号</label>
-                            </div>
                         </div>
                     </div>
                     <textarea class="editor" id="high-pay-editor" placeholder="粘贴AI生成的高付费人群分析内容..."></textarea>
                     <div class="button-group">
-                        <button class="button" onclick="generateImage('high-pay')">导出为3:4短图</button>
-                        <button class="button secondary" onclick="generateLongImage('high-pay')">导出为长图</button>
+                        <button class="button" onclick="generateImage('high-pay')">预览3:4短图</button>
+                        <button class="button secondary" onclick="generateLongImage('high-pay')">预览长图</button>
                         <button class="button secondary" onclick="clearEditor('high-pay')">清空内容</button>
                     </div>
                     <div class="preview-area" id="high-pay-preview">
@@ -400,16 +582,12 @@
                                     <option value="38">宽松</option>
                                 </select>
                             </div>
-                            <div class="settings-item">
-                                <input type="checkbox" id="search-intent-clean-symbols" checked>
-                                <label for="search-intent-clean-symbols">去除*和-等符号</label>
-                            </div>
                         </div>
                     </div>
                     <textarea class="editor" id="search-intent-editor" placeholder="粘贴AI生成的高意向搜索词分析内容..."></textarea>
                     <div class="button-group">
-                        <button class="button" onclick="generateImage('search-intent')">导出为3:4短图</button>
-                        <button class="button secondary" onclick="generateLongImage('search-intent')">导出为长图</button>
+                        <button class="button" onclick="generateImage('search-intent')">预览3:4短图</button>
+                        <button class="button secondary" onclick="generateLongImage('search-intent')">预览长图</button>
                         <button class="button secondary" onclick="clearEditor('search-intent')">清空内容</button>
                     </div>
                     <div class="preview-area" id="search-intent-preview">
@@ -445,16 +623,12 @@
                                     <option value="38">宽松</option>
                                 </select>
                             </div>
-                            <div class="settings-item">
-                                <input type="checkbox" id="pre-needs-clean-symbols" checked>
-                                <label for="pre-needs-clean-symbols">去除*和-等符号</label>
-                            </div>
                         </div>
                     </div>
                     <textarea class="editor" id="pre-needs-editor" placeholder="粘贴AI生成的前置需求分析内容..."></textarea>
                     <div class="button-group">
-                        <button class="button" onclick="generateImage('pre-needs')">导出为3:4短图</button>
-                        <button class="button secondary" onclick="generateLongImage('pre-needs')">导出为长图</button>
+                        <button class="button" onclick="generateImage('pre-needs')">预览3:4短图</button>
+                        <button class="button secondary" onclick="generateLongImage('pre-needs')">预览长图</button>
                         <button class="button secondary" onclick="clearEditor('pre-needs')">清空内容</button>
                     </div>
                     <div class="preview-area" id="pre-needs-preview">
@@ -490,16 +664,12 @@
                                     <option value="38">宽松</option>
                                 </select>
                             </div>
-                            <div class="settings-item">
-                                <input type="checkbox" id="selling-points-clean-symbols" checked>
-                                <label for="selling-points-clean-symbols">去除*和-等符号</label>
-                            </div>
                         </div>
                     </div>
                     <textarea class="editor" id="selling-points-editor" placeholder="粘贴AI生成的卖点分析内容..."></textarea>
                     <div class="button-group">
-                        <button class="button" onclick="generateImage('selling-points')">导出为3:4短图</button>
-                        <button class="button secondary" onclick="generateLongImage('selling-points')">导出为长图</button>
+                        <button class="button" onclick="generateImage('selling-points')">预览3:4短图</button>
+                        <button class="button secondary" onclick="generateLongImage('selling-points')">预览长图</button>
                         <button class="button secondary" onclick="clearEditor('selling-points')">清空内容</button>
                     </div>
                     <div class="preview-area" id="selling-points-preview">
@@ -535,16 +705,12 @@
                                     <option value="38">宽松</option>
                                 </select>
                             </div>
-                            <div class="settings-item">
-                                <input type="checkbox" id="user-thoughts-clean-symbols" checked>
-                                <label for="user-thoughts-clean-symbols">去除*和-等符号</label>
-                            </div>
                         </div>
                     </div>
                     <textarea class="editor" id="user-thoughts-editor" placeholder="粘贴AI生成的用户心理分析内容..."></textarea>
                     <div class="button-group">
-                        <button class="button" onclick="generateImage('user-thoughts')">导出为3:4短图</button>
-                        <button class="button secondary" onclick="generateLongImage('user-thoughts')">导出为长图</button>
+                        <button class="button" onclick="generateImage('user-thoughts')">预览3:4短图</button>
+                        <button class="button secondary" onclick="generateLongImage('user-thoughts')">预览长图</button>
                         <button class="button secondary" onclick="clearEditor('user-thoughts')">清空内容</button>
                     </div>
                     <div class="preview-area" id="user-thoughts-preview">
@@ -580,16 +746,12 @@
                                     <option value="38">宽松</option>
                                 </select>
                             </div>
-                            <div class="settings-item">
-                                <input type="checkbox" id="content-ideas-clean-symbols" checked>
-                                <label for="content-ideas-clean-symbols">去除*和-等符号</label>
-                            </div>
                         </div>
                     </div>
                     <textarea class="editor" id="content-ideas-editor" placeholder="粘贴AI生成的引流笔记思路内容..."></textarea>
                     <div class="button-group">
-                        <button class="button" onclick="generateImage('content-ideas')">导出为3:4短图</button>
-                        <button class="button secondary" onclick="generateLongImage('content-ideas')">导出为长图</button>
+                        <button class="button" onclick="generateImage('content-ideas')">预览3:4短图</button>
+                        <button class="button secondary" onclick="generateLongImage('content-ideas')">预览长图</button>
                         <button class="button secondary" onclick="clearEditor('content-ideas')">清空内容</button>
                     </div>
                     <div class="preview-area" id="content-ideas-preview">
@@ -625,16 +787,12 @@
                                     <option value="38">宽松</option>
                                 </select>
                             </div>
-                            <div class="settings-item">
-                                <input type="checkbox" id="project-analysis-clean-symbols" checked>
-                                <label for="project-analysis-clean-symbols">去除*和-等符号</label>
-                            </div>
                         </div>
                     </div>
                     <textarea class="editor" id="project-analysis-editor" placeholder="粘贴AI生成的项目分析内容..."></textarea>
                     <div class="button-group">
-                        <button class="button" onclick="generateImage('project-analysis')">导出为3:4短图</button>
-                        <button class="button secondary" onclick="generateLongImage('project-analysis')">导出为长图</button>
+                        <button class="button" onclick="generateImage('project-analysis')">预览3:4短图</button>
+                        <button class="button secondary" onclick="generateLongImage('project-analysis')">预览长图</button>
                         <button class="button secondary" onclick="clearEditor('project-analysis')">清空内容</button>
                     </div>
                     <div class="preview-area" id="project-analysis-preview">
@@ -645,52 +803,30 @@
             </div>
         </div>
 
-        <!-- 低竞争用户人群 -->
-        <div class="tab-content" id="low-competition">
-            <div class="analysis-container">
-                <h2>低竞争用户人群分析</h2>
-                <div class="explanation">
-                    想象一下渔民出海捕鱼的场景。大多数渔船都挤在同一片海域，因为那里曾经发现过大量的鱼群。渔船越多，每条船能捕到的鱼就越少，还得花更多的油钱和时间。但总有几个聪明的老渔民，他们会悄悄驶向人少的海域，虽然那里的鱼群体型可能小一些，却因为竞争少而能满载而归，成本却低得多。这就是商业中的"蓝海思维"。
-                </div>
-                <div class="settings-panel">
-                    <h3>图像设置</h3>
-                    <div class="settings-group">
-                        <div class="settings-item">
-                            <label for="font-size">字体大小:</label>
-                            <select id="low-competition-font-size">
-                                <option value="20">小</option>
-                                <option value="22" selected>中</option>
-                                <option value="24">大</option>
-                            </select>
-                        </div>
-                        <div class="settings-item">
-                            <label for="line-height">行高:</label>
-                            <select id="low-competition-line-height">
-                                <option value="30">紧凑</option>
-                                <option value="34" selected>标准</option>
-                                <option value="38">宽松</option>
-                            </select>
-                        </div>
-                        <div class="settings-item">
-                            <input type="checkbox" id="low-competition-clean-symbols" checked>
-                            <label for="low-competition-clean-symbols">去除*和-等符号</label>
-                        </div>
-                    </div>
-                </div>
-                <textarea class="editor" id="low-competition-editor" placeholder="粘贴AI生成的低竞争用户人群分析内容..."></textarea>
-                <div class="button-group">
-                    <button class="button" onclick="generateImage('low-competition')">导出为3:4短图</button>
-                    <button class="button secondary" onclick="generateLongImage('low-competition')">导出为长图</button>
-                    <button class="button secondary" onclick="clearEditor('low-competition')">清空内容</button>
-                </div>
-                <div class="preview-area" id="low-competition-preview">
-                    <h3>预览</h3>
-                    <img id="low-competition-image" alt="预览图">
-                </div>
-            </div>
-
         <div id="canvas-container">
             <canvas id="image-canvas"></canvas>
+        </div>
+        
+        <!-- 右侧多图预览区域 -->
+        <div class="multi-preview-container" id="multi-preview">
+            <button class="close-btn" onclick="closeMultiPreview()">×</button>
+            <h3 id="preview-header">短图预览</h3>
+            <div class="preview-thumbnails" id="preview-thumbnails">
+                <!-- 缩略图会在这里动态生成 -->
+            </div>
+            <div class="preview-indicator" id="preview-indicator">1/1</div>
+            <div class="current-preview">
+                <div class="current-preview-title" id="current-preview-title">用户需求分析 - 第1页</div>
+                <img id="current-preview-image" alt="当前预览图">
+            </div>
+            <div class="preview-controls">
+                <button class="nav-button" id="prev-button" onclick="showPrevImage()" disabled>上一张</button>
+                <button class="nav-button" id="next-button" onclick="showNextImage()" disabled>下一张</button>
+            </div>
+            <div class="preview-actions">
+                <button class="button" id="download-current-button">下载当前图片</button>
+                <button class="button secondary" id="download-all-button">下载全部图片</button>
+            </div>
         </div>
         
         <div class="progress-indicator" id="progress-indicator">
@@ -699,7 +835,11 @@
     </div>
 
     <script>
-        // 颜色映射
+        // 存储多图预览的图片数据
+        let previewImages = [];
+        let currentPreviewIndex = 0;
+        
+        // 颜色映射 - 保留但不再使用，改为随机颜色
         const colorMap = {
             'user-needs': '#4a6cf7',    // 蓝色
             'high-pay': '#8c44f7',      // 紫色
@@ -708,8 +848,7 @@
             'selling-points': '#f39c12', // 橙色
             'user-thoughts': '#3498db',  // 天蓝色
             'content-ideas': '#9b59b6',  // 紫红色
-            'project-analysis': '#1abc9c', // 青绿色
-            'low-competition': '#e67e22'  // 橙红色
+            'project-analysis': '#1abc9c' // 青绿色
         };
         
         // 标题映射
@@ -721,8 +860,7 @@
             'selling-points': '卖点分析',
             'user-thoughts': '用户心理分析',
             'content-ideas': '引流笔记思路',
-            'project-analysis': '项目分析介绍',
-            'low-competition': '低竞争用户人群分析'
+            'project-analysis': '项目分析介绍'
         };
         
         // 解释映射 - 更通俗的版本
@@ -734,8 +872,7 @@
             'selling-points': '这是找出产品最能打动人的亮点。就像卖西瓜，是"特甜"还是"特解渴"还是"无籽方便吃"更能吸引人？好的卖点能一句话就击中痛点、解决犹豫，让用户立刻掏钱，不再货比三家。这能大大提高转化率和复购率。',
             'user-thoughts': '这是揭秘用户脑子里在想啥、担心啥、最在乎啥。好比相亲，了解对方喜好和顾虑才能投其所好。知道用户购买时的心理活动，咱们就能打消他们的疑虑、强化他们的期待，设计更有共鸣的营销内容，事半功倍。',
             'content-ideas': '这是设计能吸引目标用户、让他们主动来找你的内容创意。就像钓鱼，得用对鱼饵才能钓到想要的鱼。好的引流内容能激发用户的好奇心和分享欲，吸引他们主动私信咨询，顺利引导到私域继续深入沟通，提高转化率。',
-            'project-analysis': '这是对项目进行全面体检，看看它值不值得投入时间精力和金钱。就像创业前先考察市场，免得热情劲过后发现是个无底洞。好的项目分析能帮咱们看清项目的真实前景和风险，避免盲目跟风和投资亏损，做出更靠谱的决策。',
-            'low-competition': '这是寻找被主流营销忽略的细分受众。很多时候当你觉得流量贵到无法承受时，换一个人群可能是比降价更明智的选择，其实同样的产品可以卖给完全不同的人群，而此时的价格与竞争度也会随之改变。比如月子茶这个产品，发现除了常规产妇外，还有"小月子"这个特殊人群（意外怀孕后不想要的人群），他们同样需要调养身体，而且因为心理压力更大，付费意愿可能更强。'
+            'project-analysis': '这是对项目进行全面体检，看看它值不值得投入时间精力和金钱。就像创业前先考察市场，免得热情劲过后发现是个无底洞。好的项目分析能帮咱们看清项目的真实前景和风险，避免盲目跟风和投资亏损，做出更靠谱的决策。'
         };
         
         // 获取颜色
@@ -765,62 +902,13 @@
             return parseInt(lineHeightSelect.value);
         }
         
-        // 检查是否应该清理符号
-        function shouldCleanSymbols(tabId) {
-            const cleanSymbolsCheckbox = document.getElementById(`${tabId}-clean-symbols`);
-            return cleanSymbolsCheckbox && cleanSymbolsCheckbox.checked;
-        }
-        
-        // 转换颜色为RGB
-        function hexToRgb(hex) {
-            hex = hex.replace(/^#/, '');
-            
-            let r = 0, g = 0, b = 0;
-            if (hex.length === 3) {
-                r = parseInt(hex[0] + hex[0], 16);
-                g = parseInt(hex[1] + hex[1], 16);
-                b = parseInt(hex[2] + hex[2], 16);
-            } else if (hex.length === 6) {
-                r = parseInt(hex.substring(0, 2), 16);
-                g = parseInt(hex.substring(2, 4), 16);
-                b = parseInt(hex.substring(4, 6), 16);
-            }
-            
-            return [r, g, b];
-        }
-        
-        // 清理文本中的特殊符号
-        function cleanTextSymbols(text) {
-            if (!text) return text;
-            
-            // 清理前缀和markdown标记
-            let cleanedText = text.replace(/##/g, ''); // 去除所有##标记
-            cleanedText = cleanedText.replace(/\n#+\s*/g, '\n'); // 去除可能的markdown标题标记
-            cleanedText = cleanedText.replace(/\*/g, ''); // 去除所有*标记，不只是成对的**
-            // 清理各种列表标记和破折号
-            cleanedText = cleanedText.replace(/^- /gm, '');
-            cleanedText = cleanedText.replace(/^– /gm, '');
-            cleanedText = cleanedText.replace(/^— /gm, '');
-            cleanedText = cleanedText.replace(/^-/gm, '');
-            cleanedText = cleanedText.replace(/^–/gm, '');
-            cleanedText = cleanedText.replace(/^—/gm, '');
-            
-            return cleanedText;
-        }
-        
-        // 处理符号清除复选框的变化
-        function handleCleanSymbolChange(tabId) {
-            const editor = document.getElementById(`${tabId}-editor`);
-            const cleanSymbolsCheckbox = document.getElementById(`${tabId}-clean-symbols`);
-            
-            if (cleanSymbolsCheckbox.checked) {
-                // 如果勾选了"去除符号"选项，立即处理文本
-                editor.value = cleanTextSymbols(editor.value);
-            } 
-            // 如果取消勾选，我们不能自动恢复原始格式，因为信息已丢失
-            
-            // 保存到本地存储
-            localStorage.setItem(`marketingTool-${tabId}`, editor.value);
+        // 生成随机颜色
+        function getRandomColor() {
+            // 生成较为柔和的颜色，避免太亮或太暗的颜色
+            const r = Math.floor(Math.random() * 156) + 50; 
+            const g = Math.floor(Math.random() * 156) + 50;
+            const b = Math.floor(Math.random() * 156) + 50;
+            return `rgb(${r}, ${g}, ${b})`;
         }
 
         // 初始化标签切换
@@ -841,6 +929,148 @@
             editor.value = '';
             document.getElementById(`${tabId}-preview`).style.display = 'none';
             localStorage.removeItem(`marketingTool-${tabId}`);
+        }
+
+        // 关闭右侧多图预览
+        function closeMultiPreview() {
+            document.getElementById('multi-preview').style.display = 'none';
+        }
+
+        // 更新右侧多图预览的缩略图
+        function updatePreviewThumbnails() {
+            const thumbnailsContainer = document.getElementById('preview-thumbnails');
+            thumbnailsContainer.innerHTML = '';
+            
+            previewImages.forEach((image, index) => {
+                const thumbnail = document.createElement('img');
+                thumbnail.src = image.url;
+                thumbnail.className = 'preview-thumbnail';
+                if (index === currentPreviewIndex) {
+                    thumbnail.classList.add('active');
+                }
+                thumbnail.onclick = () => showPreviewImage(index);
+                thumbnailsContainer.appendChild(thumbnail);
+            });
+        }
+        
+        // 显示指定索引的预览图片
+        function showPreviewImage(index) {
+            if (index < 0 || index >= previewImages.length) return;
+            
+            currentPreviewIndex = index;
+            const currentImage = previewImages[index];
+            
+            // 更新当前预览图片
+            const previewImage = document.getElementById('current-preview-image');
+            previewImage.src = currentImage.url;
+            
+            // 更新标题
+            const previewTitle = document.getElementById('current-preview-title');
+            previewTitle.textContent = `${currentImage.title} - 第${currentImage.page}页`;
+            
+            // 更新指示器
+            const indicator = document.getElementById('preview-indicator');
+            indicator.textContent = `${index + 1}/${previewImages.length}`;
+            
+            // 更新导航按钮状态
+            document.getElementById('prev-button').disabled = index === 0;
+            document.getElementById('next-button').disabled = index === previewImages.length - 1;
+            
+            // 更新缩略图选中状态
+            const thumbnails = document.querySelectorAll('.preview-thumbnail');
+            thumbnails.forEach((thumbnail, i) => {
+                if (i === index) {
+                    thumbnail.classList.add('active');
+                } else {
+                    thumbnail.classList.remove('active');
+                }
+            });
+            
+            // 更新下载按钮
+            const downloadButton = document.getElementById('download-current-button');
+            downloadButton.onclick = () => downloadImage(currentImage.url, `${currentImage.title}_第${currentImage.page}页.png`);
+        }
+        
+        // 显示上一张图片
+        function showPrevImage() {
+            if (currentPreviewIndex > 0) {
+                showPreviewImage(currentPreviewIndex - 1);
+            }
+        }
+        
+        // 显示下一张图片
+        function showNextImage() {
+            if (currentPreviewIndex < previewImages.length - 1) {
+                showPreviewImage(currentPreviewIndex + 1);
+            }
+        }
+        
+        // 添加图片到多图预览
+        function addImageToMultiPreview(imageData, title, page, totalPages) {
+            // 添加新图片
+            previewImages.push({
+                url: imageData,
+                title: title,
+                page: page,
+                totalPages: totalPages
+            });
+            
+            // 更新缩略图
+            updatePreviewThumbnails();
+            
+            // 如果是第一张图片，显示它
+            if (previewImages.length === 1) {
+                showPreviewImage(0);
+            }
+            
+            // 显示右侧多图预览
+            document.getElementById('multi-preview').style.display = 'flex';
+            
+            // 更新标题 - 检查是否为长图预览
+            const previewHeader = document.getElementById('preview-header');
+            if (title.includes('长图')) {
+                previewHeader.textContent = '长图预览';
+            } else {
+                previewHeader.textContent = '短图预览';
+            }
+            
+            // 更新下载全部按钮
+            document.getElementById('download-all-button').onclick = downloadAllImages;
+        }
+        
+        // 下载所有预览图片
+        function downloadAllImages() {
+            if (previewImages.length === 0) return;
+            
+            // 单张图片直接下载
+            if (previewImages.length === 1) {
+                const image = previewImages[0];
+                downloadImage(image.url, `${image.title}_第${image.page}页.png`);
+                return;
+            }
+            
+            // 多张图片打包为ZIP
+            const zip = new JSZip();
+            
+            // 添加所有图片到ZIP
+            const promises = previewImages.map((image, index) => {
+                return fetch(image.url)
+                    .then(res => res.blob())
+                    .then(blob => {
+                        zip.file(`${image.title}_第${image.page}页.png`, blob);
+                    });
+            });
+            
+            // 所有图片添加完成后生成ZIP
+            Promise.all(promises).then(() => {
+                zip.generateAsync({type: 'blob'}).then(function(content) {
+                    // 下载ZIP文件
+                    const link = document.createElement('a');
+                    link.href = URL.createObjectURL(content);
+                    link.download = '短图集.zip';
+                    link.click();
+                });
+            });
         }
 
         // 文本换行函数
@@ -883,6 +1113,19 @@
             link.click();
         }
         
+        // 清空多图预览
+        function clearMultiPreview() {
+            previewImages = [];
+            currentPreviewIndex = 0;
+            document.getElementById('preview-thumbnails').innerHTML = '';
+            document.getElementById('current-preview-image').src = '';
+            document.getElementById('current-preview-title').textContent = '';
+            document.getElementById('preview-indicator').textContent = '0/0';
+            document.getElementById('prev-button').disabled = true;
+            document.getElementById('next-button').disabled = true;
+            document.getElementById('multi-preview').style.display = 'none';
+        }
+        
         // 生成图片
         function generateImage(tabId) {
             try {
@@ -894,22 +1137,18 @@
                     return;
                 }
                 
+                const progressIndicator = document.getElementById('progress-indicator');
+                progressIndicator.style.display = 'block';
+                progressIndicator.textContent = '正在生成图片，请稍候...';
+                
+                // 清空多图预览，准备添加新图片
+                clearMultiPreview();
+                
                 // 清理前缀和markdown标记
                 let cleanedText = text.replace(/^好的[，,].*?[。\n]/, '');
                 cleanedText = cleanedText.replace(/^我来分析.*?[。\n]/, '');
-                
-                // 因为文本框中的内容可能已经被清理过符号，这里只应用未处理过的清理
                 cleanedText = cleanedText.replace(/##/g, ''); // 去除所有##标记
                 cleanedText = cleanedText.replace(/\n#+\s*/g, '\n'); // 去除可能的markdown标题标记
-                
-                // 根据用户设置决定是否清理特殊符号（如果尚未清理）
-                if (shouldCleanSymbols(tabId)) {
-                    cleanedText = cleanTextSymbols(cleanedText);
-                }
-                cleanedText = cleanedText.replace(/\*\*/g, ''); // 去除所有**标记
-                cleanedText = cleanedText.replace(/^- /gm, ''); // 去除每行开头的- 列表标记
-                cleanedText = cleanedText.replace(/^–\s+/gm, ''); // 去除每行开头的–列表标记
-                cleanedText = cleanedText.replace(/^—\s+/gm, ''); // 去除每行开头的—列表标记
                 
                 // 创建画布
                 const canvas = document.getElementById('image-canvas');
@@ -967,16 +1206,39 @@
                     }
                     
                     // 考虑解释文本的高度，确保每页都有足够空间
-                    const maxPageHeight = height * 0.75 - explanationHeight - 50;
+                    // 修改：增加页面容量，页面高度提高到92%，红线位置大约是底部的92%
+                    const maxPageHeight = height * 0.92 - explanationHeight - 50;
                     
                     // 检查是否需要新页
                     if (estimatedHeight + paraHeight > maxPageHeight && currentPage.length > 0) {
+                        // 获取当前页最后几行内容作为下一页的开始，以重叠方式防止内容丢失
+                        const overlapLines = Math.min(2, currentPage.length);
+                        const overlapContent = currentPage.slice(-overlapLines);
+                        
                         // 将解释文本作为特殊标记添加到每一页
                         currentPage.unshift("#EXPLANATION#" + explanation);
                         
                         pages.push(currentPage);
-                        currentPage = [para];
+                        
+                        // 下一页以重叠内容开始，再添加新段落
+                        currentPage = [...overlapContent, para];
+                        
+                        // 重新计算高度，考虑重叠内容
                         estimatedHeight = paraHeight;
+                        for (const overlapPara of overlapContent) {
+                            if (overlapPara.trim() === '') {
+                                estimatedHeight += lineHeightEstimate * 0.5;
+                            } else if (/^\d+[\.\、]/.test(overlapPara.trim())) {
+                                const lines = Math.ceil(overlapPara.length * fontSize / (width - 100));
+                                estimatedHeight += lines * lineHeightEstimate * 1.5;
+                            } else if (overlapPara.includes('：') && overlapPara.indexOf('：') < 30) {
+                                const lines = Math.ceil(overlapPara.length * fontSize / (width - 100));
+                                estimatedHeight += lines * lineHeightEstimate * 1.2;
+                            } else {
+                                const lines = Math.ceil(overlapPara.length * fontSize / (width - 100));
+                                estimatedHeight += lines * lineHeightEstimate;
+                            }
+                        }
                     } else {
                         currentPage.push(para);
                         estimatedHeight += paraHeight;
@@ -1003,20 +1265,32 @@
                 
                 // 处理每页
                 let pageIndex = 0;
+                const pagePadding = 30; // 页面间的重叠区域，防止内容丢失
+                
                 processNextPage();
                 
                 function processNextPage() {
                     if (pageIndex >= pages.length) {
                         // 完成所有页面
                         if (zip) {
+                            document.getElementById('multi-preview').style.display = 'flex';
+                            // 只打包不下载，让用户从预览区手动下载
                             zip.generateAsync({type: "blob"}).then(function(content) {
-                                const url = URL.createObjectURL(content);
-                                const link = document.createElement('a');
-                                link.href = url;
-                                link.download = `${getTitle(tabId)}.zip`;
-                                link.click();
+                                // 存储ZIP对象以供用户手动下载
+                                const zipBlob = content;
+                                const zipUrl = URL.createObjectURL(zipBlob);
+                                // 更新下载全部按钮，点击时才下载ZIP
+                                document.getElementById('download-all-button').onclick = function() {
+                                    const link = document.createElement('a');
+                                    link.href = zipUrl;
+                                    link.download = `${getTitle(tabId)}.zip`;
+                                    link.click();
+                                };
                             });
+                        } else {
+                            document.getElementById('multi-preview').style.display = 'flex';
                         }
+                        progressIndicator.style.display = 'none';
                         return;
                     }
                     
@@ -1024,7 +1298,10 @@
                     const pageContent = pages[pageIndex];
                     const pageNum = pageIndex + 1;
                     
-                    // 填充白色背景
+                    // 清除画布
+                    ctx.clearRect(0, 0, width, height);
+                    
+                    // 绘制背景
                     ctx.fillStyle = '#ffffff';
                     ctx.fillRect(0, 0, width, height);
                     
@@ -1095,6 +1372,7 @@
                         
                         // 2. 数字标题 (如 "1. 标题")
                         if (/^\d+[\.\、]/.test(paragraph.trim())) {
+                            // 使用主题色而非随机色，保持与长图一致
                             ctx.fillStyle = themeColor;
                             ctx.font = `bold ${fontSize+6}px Arial, "Microsoft YaHei", "微软雅黑"`;
                             y = wrapText(ctx, paragraph.trim(), 50, y, maxWidth, lineHeight * 1.2);
@@ -1104,14 +1382,14 @@
                             ctx.fillStyle = '#333333';
                             ctx.font = `${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
                         } 
-                        // 3. 用户角度的心声部分 - 修改为与普通文本一致的格式，但稍微有所区分
+                        // 3. 用户角度的心声部分 - 使用统一样式
                         else if (paragraph.trim().startsWith('用户角度的心声：')) {
                             // 分离冒号前后的部分
                             const colonIndex = paragraph.indexOf('：');
                             const beforeColon = paragraph.substring(0, colonIndex + 1); // 包括冒号
                             const afterColon = paragraph.substring(colonIndex + 1);
                             
-                            // 冒号前的部分使用普通加粗样式
+                            // 使用统一颜色
                             ctx.fillStyle = '#333333';
                             ctx.font = `bold ${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
                             ctx.fillText(beforeColon, 50, y);
@@ -1142,7 +1420,7 @@
                             const beforeColon = paragraph.substring(0, colonIndex + 1); // 包括冒号
                             const afterColon = paragraph.substring(colonIndex + 1);
                             
-                            // 冒号前的部分加粗显示
+                            // 使用主题色而非随机色
                             ctx.fillStyle = '#333333';
                             ctx.font = `bold ${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
                             const beforeWidth = ctx.measureText(beforeColon).width;
@@ -1193,58 +1471,68 @@
                         }
                     }
                     
-                    // 下载逻辑
-                    const fileName = getTitle(tabId);
+                    // 添加到右侧多图预览
+                    addImageToMultiPreview(imageData, getTitle(tabId), pageNum, pages.length);
                     
-                    // 多页打包
+                    // 如果有多页，将图片添加到ZIP
                     if (zip) {
                         // 转为Blob
                         fetch(imageData)
                             .then(res => res.blob())
                             .then(blob => {
                                 // 添加到ZIP
-                                zip.file(`${fileName}_第${pageNum}页.png`, blob);
+                                zip.file(`${getTitle(tabId)}_第${pageNum}页.png`, blob);
                                 
                                 // 处理下一页
                                 pageIndex++;
                                 setTimeout(processNextPage, 50);
                             });
                     } else {
-                        // 单页直接下载
-                        downloadImage(imageData, `${fileName}.png`);
+                        // 单页
                         pageIndex++;
+                        setTimeout(processNextPage, 50);
                     }
                 }
             } catch (error) {
                 console.error('生成图片时出错:', error);
+                document.getElementById('progress-indicator').style.display = 'none';
                 alert('生成图片时出错: ' + error.message);
             }
         }
         
-        // 生成长图（将所有内容拼接成一张图）
-        function generateLongImage(tabId) {
+// 生成长图（将所有内容拼接成一张图）
+function generateLongImage(tabId) {
+    try {
+        const progressIndicator = document.getElementById('progress-indicator');
+        progressIndicator.style.display = 'block';
+        progressIndicator.textContent = '正在生成长图，请稍候...';
+        
+        const editor = document.getElementById(`${tabId}-editor`);
+        const text = editor.value.trim();
+        
+        if (!text) {
+            alert('请先输入或粘贴内容');
+            progressIndicator.style.display = 'none';
+            return;
+        }
+        
+        // 清理前缀和markdown标记
+        let cleanedText = text.replace(/^好的[，,].*?[。\n]/, '');
+        cleanedText = cleanedText.replace(/^我来分析.*?[。\n]/, '');
+        cleanedText = cleanedText.replace(/##/g, ''); // 去除所有##标记
+        cleanedText = cleanedText.replace(/\n#+\s*/g, '\n'); // 去除可能的markdown标题标记
+        
+        // 使用setTimeout确保UI更新，并防止浏览器挂起
+        setTimeout(() => {
             try {
-                const progressIndicator = document.getElementById('progress-indicator');
-                progressIndicator.style.display = 'block';
-                
-                const editor = document.getElementById(`${tabId}-editor`);
-                const text = editor.value.trim();
-                
-                if (!text) {
-                    alert('请先输入或粘贴内容');
-                    progressIndicator.style.display = 'none';
-                    return;
-                }
-                
-                // 清理前缀和markdown标记
-                let cleanedText = text.replace(/^好的[，,].*?[。\n]/, '');
-                cleanedText = cleanedText.replace(/^我来分析.*?[。\n]/, '');
-                cleanedText = cleanedText.replace(/##/g, ''); // 去除所有##标记
-                cleanedText = cleanedText.replace(/\n#+\s*/g, '\n'); // 去除可能的markdown标题标记
-                
-                // 创建临时画布用于测量
+                // 创建临时画布用于测量和绘制
                 const canvas = document.getElementById('image-canvas');
                 const width = 900;
+                
+                // 设置临时画布大小 - 先设一个足够大的尺寸
+                canvas.width = width;
+                canvas.height = 8000; // 临时设置一个非常大的高度，确保足够容纳内容
+                
                 const ctx = canvas.getContext('2d');
                 
                 // 获取用户设置
@@ -1259,84 +1547,37 @@
                 // 准备段落
                 const paragraphs = cleanedText.split('\n');
                 
+                // 填充白色背景
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(0, 0, width, 8000);
+                
                 // 计算标题区域高度
                 const headerHeight = 240; // 标题+渐变+解释文本的高度
                 
-                // 估算总高度
-                let totalHeight = headerHeight;
-                
-                // 设置字体以便测量文本
-                ctx.font = `${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
-                
-                // 估算段落所需高度
-                for (const para of paragraphs) {
-                    if (para.trim() === '') {
-                        totalHeight += lineHeight * 0.5;
-                        continue;
-                    }
-                    
-                    // 根据段落类型估算高度
-                    if (/^\d+[\.\、]/.test(para.trim())) {
-                        // 数字标题
-                        const lines = Math.ceil(ctx.measureText(para.trim()).width / (width - 100));
-                        totalHeight += lines * lineHeight * 1.5 + lineHeight * 0.5;
-                    } else if (para.includes('：') && para.indexOf('：') < 30) {
-                        // 冒号标题
-                        const colonIndex = para.indexOf('：');
-                        const afterColon = para.substring(colonIndex + 1);
-                        
-                        if (afterColon.length > 30 || afterColon.includes('，')) {
-                            // 冒号后文本较长，另起一行
-                            const lines = Math.ceil(ctx.measureText(afterColon).width / (width - 100));
-                            totalHeight += lineHeight + lines * lineHeight + lineHeight * 0.5;
-                        } else {
-                            totalHeight += lineHeight + lineHeight * 0.5;
-                        }
-                    } else {
-                        // 普通段落
-                        const lines = Math.ceil(ctx.measureText(para.trim()).width / (width - 100));
-                        totalHeight += lines * lineHeight + lineHeight * 0.3;
-                    }
-                }
-                
-                // 添加底部边距
-                totalHeight += 50;
-                
-                // 设置画布大小
-                canvas.width = width;
-                canvas.height = totalHeight;
-                
-                // 重新获取上下文（因为调整了大小）
-                const longCtx = canvas.getContext('2d');
-                
-                // 填充白色背景
-                longCtx.fillStyle = '#ffffff';
-                longCtx.fillRect(0, 0, width, totalHeight);
-                
                 // 绘制顶部渐变
-                const gradient = longCtx.createLinearGradient(0, 0, 0, headerHeight);
+                const gradient = ctx.createLinearGradient(0, 0, 0, headerHeight);
                 gradient.addColorStop(0, themeColor);  
                 gradient.addColorStop(0.5, '#ffffff');
-                longCtx.fillStyle = gradient;
-                longCtx.fillRect(0, 0, width, headerHeight);
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, width, headerHeight);
                 
                 // 绘制标题
-                longCtx.fillStyle = '#ffffff';
-                longCtx.font = 'bold 40px Arial, "Microsoft YaHei", "微软雅黑"';
-                longCtx.fillText(title, 50, 80);
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 40px Arial, "Microsoft YaHei", "微软雅黑"';
+                ctx.fillText(title, 50, 80);
                 
                 // 绘制解释文本
                 if (explanation) {
-                    longCtx.fillStyle = '#333333';
-                    longCtx.font = `${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
-                    wrapText(longCtx, explanation, 50, 120, width - 100, lineHeight);
+                    ctx.fillStyle = '#333333';
+                    ctx.font = `${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
+                    wrapText(ctx, explanation, 50, 120, width - 100, lineHeight);
                 }
                 
                 // 开始绘制内容
                 let y = headerHeight;
                 const maxWidth = width - 100;
                 
-                // 绘制所有段落
+                // 绘制所有段落并记录实际高度
                 for (const paragraph of paragraphs) {
                     if (paragraph.trim() === '') {
                         y += lineHeight * 0.5;
@@ -1346,14 +1587,14 @@
                     // 特殊格式处理
                     // 1. 数字标题 (如 "1. 标题")
                     if (/^\d+[\.\、]/.test(paragraph.trim())) {
-                        longCtx.fillStyle = themeColor;
-                        longCtx.font = `bold ${fontSize+6}px Arial, "Microsoft YaHei", "微软雅黑"`;
-                        y = wrapText(longCtx, paragraph.trim(), 50, y, maxWidth, lineHeight * 1.2);
+                        ctx.fillStyle = themeColor;
+                        ctx.font = `bold ${fontSize+6}px Arial, "Microsoft YaHei", "微软雅黑"`;
+                        y = wrapText(ctx, paragraph.trim(), 50, y, maxWidth, lineHeight * 1.2);
                         y += lineHeight * 0.5;
                         
                         // 重置样式
-                        longCtx.fillStyle = '#333333';
-                        longCtx.font = `${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
+                        ctx.fillStyle = '#333333';
+                        ctx.font = `${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
                     } 
                     // 2. 用户角度的心声部分
                     else if (paragraph.trim().startsWith('用户角度的心声：')) {
@@ -1363,28 +1604,28 @@
                         const afterColon = paragraph.substring(colonIndex + 1);
                         
                         // 冒号前的部分使用普通加粗样式
-                        longCtx.fillStyle = '#333333';
-                        longCtx.font = `bold ${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
-                        longCtx.fillText(beforeColon, 50, y);
+                        ctx.fillStyle = '#333333';
+                        ctx.font = `bold ${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
+                        ctx.fillText(beforeColon, 50, y);
                         
-                        const beforeWidth = longCtx.measureText(beforeColon).width;
+                        const beforeWidth = ctx.measureText(beforeColon).width;
                         
                         // 冒号后的部分使用普通样式
-                        longCtx.font = `${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
+                        ctx.font = `${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
                         
                         // 如果冒号后内容较长，另起一行
-                        if (afterColon.length > 20 || beforeWidth + longCtx.measureText(afterColon).width > maxWidth) {
+                        if (afterColon.length > 20 || beforeWidth + ctx.measureText(afterColon).width > maxWidth) {
                             y += lineHeight;
-                            y = wrapText(longCtx, afterColon, 50, y, maxWidth, lineHeight);
+                            y = wrapText(ctx, afterColon, 50, y, maxWidth, lineHeight);
                         } else {
                             // 短内容接着冒号后显示
-                            longCtx.fillText(afterColon, 50 + beforeWidth, y);
+                            ctx.fillText(afterColon, 50 + beforeWidth, y);
                             y += lineHeight;
                         }
                         
                         // 重置样式
-                        longCtx.fillStyle = '#333333';
-                        longCtx.font = `${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
+                        ctx.fillStyle = '#333333';
+                        ctx.font = `${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
                     }
                     // 3. 冒号标题
                     else if (paragraph.includes('：') && paragraph.indexOf('：') < 30) {
@@ -1394,35 +1635,47 @@
                         const afterColon = paragraph.substring(colonIndex + 1);
                         
                         // 冒号前的部分加粗显示
-                        longCtx.fillStyle = '#333333';
-                        longCtx.font = `bold ${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
-                        const beforeWidth = longCtx.measureText(beforeColon).width;
-                        longCtx.fillText(beforeColon, 50, y);
+                        ctx.fillStyle = '#333333';
+                        ctx.font = `bold ${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
+                        const beforeWidth = ctx.measureText(beforeColon).width;
+                        ctx.fillText(beforeColon, 50, y);
                         
                         // 冒号后的部分使用普通样式
-                        longCtx.font = `${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
+                        ctx.font = `${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
                         
                         // 如果冒号后的内容较长或包含逗号等，另起一行
-                        if (afterColon.length > 30 || afterColon.includes('，') || beforeWidth + longCtx.measureText(afterColon).width > maxWidth) {
+                        if (afterColon.length > 30 || afterColon.includes('，') || beforeWidth + ctx.measureText(afterColon).width > maxWidth) {
                             y += lineHeight;
-                            y = wrapText(longCtx, afterColon, 50, y, maxWidth, lineHeight);
+                            y = wrapText(ctx, afterColon, 50, y, maxWidth, lineHeight);
                         } else {
                             // 短内容接着冒号后显示
-                            longCtx.fillText(afterColon, 50 + beforeWidth, y);
+                            ctx.fillText(afterColon, 50 + beforeWidth, y);
                             y += lineHeight;
                         }
                     }
                     // 4. 普通段落
                     else {
-                        longCtx.fillStyle = '#333333';
-                        longCtx.font = `${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
-                        y = wrapText(longCtx, paragraph.trim(), 50, y, maxWidth, lineHeight);
+                        ctx.fillStyle = '#333333';
+                        ctx.font = `${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
+                        y = wrapText(ctx, paragraph.trim(), 50, y, maxWidth, lineHeight);
                         y += lineHeight * 0.3;
                     }
                 }
                 
-                // 获取图像数据
-                const imageData = canvas.toDataURL('image/png');
+                // 最终高度（添加底部边距）
+                const finalHeight = y + 60;
+                
+                // 创建新的画布，尺寸刚好容纳内容
+                const finalCanvas = document.createElement('canvas');
+                finalCanvas.width = width;
+                finalCanvas.height = finalHeight;
+                const finalCtx = finalCanvas.getContext('2d');
+                
+                // 从临时画布复制内容到最终画布
+                finalCtx.drawImage(canvas, 0, 0, width, finalHeight, 0, 0, width, finalHeight);
+                
+                // 获取最终图像数据
+                const imageData = finalCanvas.toDataURL('image/png');
                 
                 // 显示预览
                 const previewArea = document.getElementById(`${tabId}-preview`);
@@ -1438,328 +1691,263 @@
                     pageInfoElem.className = 'page-info';
                     previewArea.appendChild(pageInfoElem);
                 }
-                pageInfoElem.textContent = `已生成长图，高度: ${totalHeight}px`;
+                pageInfoElem.textContent = `已生成长图，高度: ${finalHeight}px`;
                 
-                // 下载图片
-                const fileName = `${getTitle(tabId)}_长图`;
-                downloadImage(imageData, `${fileName}.png`);
+                // 清空多图预览并添加长图
+                clearMultiPreview();
+                addImageToMultiPreview(imageData, `${getTitle(tabId)}(长图)`, 1, 1);
+                
+                // 更新右侧预览标题
+                const previewHeader = document.getElementById('preview-header');
+                previewHeader.textContent = '长图预览';
                 
                 progressIndicator.style.display = 'none';
             } catch (error) {
-                console.error('生成长图时出错:', error);
-                document.getElementById('progress-indicator').style.display = 'none';
+                console.error('生成长图处理过程出错:', error);
+                progressIndicator.style.display = 'none';
                 alert('生成长图时出错: ' + error.message);
+            }
+        }, 100); // 给浏览器一点时间更新UI
+    } catch (error) {
+        console.error('生成长图初始化出错:', error);
+        document.getElementById('progress-indicator').style.display = 'none';
+        alert('生成长图初始化出错: ' + error.message);
+    }
+}
+
+// 导出所有模块长图
+function exportAllLongImages() {
+    const progressIndicator = document.getElementById('progress-indicator');
+    progressIndicator.style.display = 'block';
+    progressIndicator.textContent = '正在准备所有模块长图，请稍候...';
+    
+    // 获取所有模块ID
+    const moduleIds = [
+        'user-needs', 
+        'high-pay', 
+        'search-intent', 
+        'pre-needs', 
+        'selling-points', 
+        'user-thoughts', 
+        'content-ideas', 
+        'project-analysis'
+    ];
+    
+    // 过滤出有内容的模块
+    const modulesWithContent = moduleIds.filter(id => {
+        const editor = document.getElementById(`${id}-editor`);
+        return editor && editor.value.trim().length > 0;
+    });
+    
+    if (modulesWithContent.length === 0) {
+        progressIndicator.style.display = 'none';
+        alert('没有找到任何有内容的模块，请先填写内容');
+        return;
+    }
+    
+    // 创建ZIP包
+    const zip = new JSZip();
+    let processedCount = 0;
+    
+    // 更新进度信息
+    progressIndicator.textContent = `正在处理 ${modulesWithContent.length} 个模块，已完成: 0`;
+    
+    // 处理每个模块
+    processNextModule(0);
+    
+    function processNextModule(index) {
+        if (index >= modulesWithContent.length) {
+            // 所有模块已处理完毕，生成并下载ZIP
+            progressIndicator.textContent = '正在生成ZIP包，请稍候...';
+            
+            zip.generateAsync({type: 'blob'}).then(function(content) {
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(content);
+                link.download = '所有模块长图.zip';
+                link.click();
+                
+                progressIndicator.style.display = 'none';
+            });
+            
+            return;
+        }
+        
+        const tabId = modulesWithContent[index];
+        progressIndicator.textContent = `正在处理: ${getTitle(tabId)}，进度: ${index + 1}/${modulesWithContent.length}`;
+        
+        // 获取内容
+        const editor = document.getElementById(`${tabId}-editor`);
+        const text = editor.value.trim();
+        
+        // 清理前缀和markdown标记
+        let cleanedText = text.replace(/^好的[，,].*?[。\n]/, '');
+        cleanedText = cleanedText.replace(/^我来分析.*?[。\n]/, '');
+        cleanedText = cleanedText.replace(/##/g, ''); // 去除所有##标记
+        cleanedText = cleanedText.replace(/\n#+\s*/g, '\n'); // 去除可能的markdown标题标记
+        
+        // 创建临时画布
+        const canvas = document.createElement('canvas');
+        const width = 900;
+        canvas.width = width;
+        canvas.height = 8000; // 临时大尺寸
+        
+        const ctx = canvas.getContext('2d');
+        
+        // 获取用户设置
+        const fontSize = getFontSize(tabId);
+        const lineHeight = getLineHeight(tabId);
+        
+        // 获取解释文本和主题色
+        const explanation = getExplanation(tabId);
+        const themeColor = getColorForTab(tabId);
+        const title = getTitle(tabId);
+        
+        // 准备段落
+        const paragraphs = cleanedText.split('\n');
+        
+        // 填充白色背景
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, width, 8000);
+        
+        // 计算标题区域高度
+        const headerHeight = 240;
+        
+        // 绘制顶部渐变
+        const gradient = ctx.createLinearGradient(0, 0, 0, headerHeight);
+        gradient.addColorStop(0, themeColor);  
+        gradient.addColorStop(0.5, '#ffffff');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, width, headerHeight);
+        
+        // 绘制标题
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 40px Arial, "Microsoft YaHei", "微软雅黑"';
+        ctx.fillText(title, 50, 80);
+        
+        // 绘制解释文本
+        if (explanation) {
+            ctx.fillStyle = '#333333';
+            ctx.font = `${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
+            wrapText(ctx, explanation, 50, 120, width - 100, lineHeight);
+        }
+        
+        // 开始绘制内容
+        let y = headerHeight;
+        const maxWidth = width - 100;
+        
+        // 绘制所有段落并记录实际高度
+        for (const paragraph of paragraphs) {
+            if (paragraph.trim() === '') {
+                y += lineHeight * 0.5;
+                continue;
+            }
+            
+            // 特殊格式处理
+            // 1. 数字标题 (如 "1. 标题")
+            if (/^\d+[\.\、]/.test(paragraph.trim())) {
+                ctx.fillStyle = themeColor;
+                ctx.font = `bold ${fontSize+6}px Arial, "Microsoft YaHei", "微软雅黑"`;
+                y = wrapText(ctx, paragraph.trim(), 50, y, maxWidth, lineHeight * 1.2);
+                y += lineHeight * 0.5;
+                
+                // 重置样式
+                ctx.fillStyle = '#333333';
+                ctx.font = `${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
+            } 
+            // 2. 用户角度的心声部分
+            else if (paragraph.trim().startsWith('用户角度的心声：')) {
+                // 分离冒号前后的部分
+                const colonIndex = paragraph.indexOf('：');
+                const beforeColon = paragraph.substring(0, colonIndex + 1);
+                const afterColon = paragraph.substring(colonIndex + 1);
+                
+                // 冒号前的部分使用普通加粗样式
+                ctx.fillStyle = '#333333';
+                ctx.font = `bold ${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
+                ctx.fillText(beforeColon, 50, y);
+                
+                const beforeWidth = ctx.measureText(beforeColon).width;
+                
+                // 冒号后的部分使用普通样式
+                ctx.font = `${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
+                
+                // 如果冒号后内容较长，另起一行
+                if (afterColon.length > 20 || beforeWidth + ctx.measureText(afterColon).width > maxWidth) {
+                    y += lineHeight;
+                    y = wrapText(ctx, afterColon, 50, y, maxWidth, lineHeight);
+                } else {
+                    // 短内容接着冒号后显示
+                    ctx.fillText(afterColon, 50 + beforeWidth, y);
+                    y += lineHeight;
+                }
+                
+                // 重置样式
+                ctx.fillStyle = '#333333';
+                ctx.font = `${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
+            }
+            // 3. 冒号标题
+            else if (paragraph.includes('：') && paragraph.indexOf('：') < 30) {
+                // 分离冒号前后的部分
+                const colonIndex = paragraph.indexOf('：');
+                const beforeColon = paragraph.substring(0, colonIndex + 1);
+                const afterColon = paragraph.substring(colonIndex + 1);
+                
+                // 冒号前的部分加粗显示
+                ctx.fillStyle = '#333333';
+                ctx.font = `bold ${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
+                const beforeWidth = ctx.measureText(beforeColon).width;
+                ctx.fillText(beforeColon, 50, y);
+                
+                // 冒号后的部分使用普通样式
+                ctx.font = `${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
+                
+                // 如果冒号后的内容较长或包含逗号等，另起一行
+                if (afterColon.length > 30 || afterColon.includes('，') || beforeWidth + ctx.measureText(afterColon).width > maxWidth) {
+                    y += lineHeight;
+                    y = wrapText(ctx, afterColon, 50, y, maxWidth, lineHeight);
+                } else {
+                    // 短内容接着冒号后显示
+                    ctx.fillText(afterColon, 50 + beforeWidth, y);
+                    y += lineHeight;
+                }
+            }
+            // 4. 普通段落
+            else {
+                ctx.fillStyle = '#333333';
+                ctx.font = `${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
+                y = wrapText(ctx, paragraph.trim(), 50, y, maxWidth, lineHeight);
+                y += lineHeight * 0.3;
             }
         }
         
-        // 导出所有内容为长图
-        function exportAllAsLongImage() {
-            try {
-                const progressIndicator = document.getElementById('progress-indicator');
-                progressIndicator.style.display = 'block';
-                progressIndicator.textContent = '正在生成所有内容的长图...';
-                
-                // 标签页列表
-                const tabs = [
-                    'user-needs', 
-                    'high-pay', 
-                    'search-intent', 
-                    'pre-needs', 
-                    'selling-points', 
-                    'user-thoughts', 
-                    'content-ideas', 
-                    'project-analysis',
-                    'low-competition'
-                ];
-                
-                // 筛选有内容的标签页
-                const tabsWithContent = tabs.filter(tabId => {
-                    const editor = document.getElementById(`${tabId}-editor`);
-                    return editor.value.trim() !== '';
-                });
-                
-                if (tabsWithContent.length === 0) {
-                    alert('没有可导出的内容，请先在至少一个标签页中输入内容');
-                    progressIndicator.style.display = 'none';
-                    return;
-                }
-                
-                // 创建一个zip文件来存储所有长图
-                const zip = new JSZip();
-                
-                // 处理每个有内容的标签页
-                let currentIndex = 0;
-                
-                processNextTab();
-                
-                function processNextTab() {
-                    if (currentIndex >= tabsWithContent.length) {
-                        // 所有标签都已处理完，保存ZIP
-                        progressIndicator.textContent = '正在打包所有图片...';
-                        
-                        zip.generateAsync({type: 'blob'}).then(function(content) {
-                            // 下载ZIP文件
-                            const link = document.createElement('a');
-                            link.href = URL.createObjectURL(content);
-                            link.download = '营销分析图片集.zip';
-                            link.click();
-                            
-                            progressIndicator.style.display = 'none';
-                        });
-                        
-                        return;
-                    }
-                    
-                    const tabId = tabsWithContent[currentIndex];
-                    progressIndicator.textContent = `正在处理 ${getTitle(tabId)}...`;
-                    
-                    const editor = document.getElementById(`${tabId}-editor`);
-                    const text = editor.value.trim();
-                    
-                    // 清理前缀和markdown标记
-                    let cleanedText = text.replace(/^好的[，,].*?[。\n]/, '');
-                    cleanedText = cleanedText.replace(/^我来分析.*?[。\n]/, '');
-                    
-                    // 因为文本框中的内容可能已经被清理过符号，这里只应用未处理过的清理
-                    cleanedText = cleanedText.replace(/##/g, ''); // 去除所有##标记
-                    cleanedText = cleanedText.replace(/\n#+\s*/g, '\n'); // 去除可能的markdown标题标记
-                    
-                    // 根据用户设置决定是否清理特殊符号（如果尚未清理）
-                    if (shouldCleanSymbols(tabId)) {
-                        cleanedText = cleanTextSymbols(cleanedText);
-                    }
-                    cleanedText = cleanedText.replace(/\*/g, ''); // 去除所有*标记，不只是成对的**
-                    // 清理各种列表标记和破折号
-                    cleanedText = cleanedText.replace(/^- /gm, '');
-                    cleanedText = cleanedText.replace(/^– /gm, '');
-                    cleanedText = cleanedText.replace(/^— /gm, '');
-                    cleanedText = cleanedText.replace(/^-/gm, '');
-                    cleanedText = cleanedText.replace(/^–/gm, '');
-                    cleanedText = cleanedText.replace(/^—/gm, '');
-                    
-                    // 创建临时画布
-                    const canvas = document.getElementById('image-canvas');
-                    const width = 900;
-                    const ctx = canvas.getContext('2d');
-                    
-                    // 获取用户设置
-                    const fontSize = getFontSize(tabId);
-                    const lineHeight = getLineHeight(tabId);
-                    
-                    // 获取解释文本
-                    const explanation = getExplanation(tabId);
-                    const themeColor = getColorForTab(tabId);
-                    const title = getTitle(tabId);
-                    
-                    // 准备段落
-                    const paragraphs = cleanedText.split('\n');
-                    
-                    // 计算标题区域高度
-                    const headerHeight = 240; // 标题+渐变+解释文本的高度
-                    
-                    // 估算总高度
-                    let totalHeight = headerHeight;
-                    
-                    // 设置字体以便测量文本
-                    ctx.font = `${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
-                    
-                    // 估算段落所需高度
-                    for (const para of paragraphs) {
-                        if (para.trim() === '') {
-                            totalHeight += lineHeight * 0.5;
-                            continue;
-                        }
-                        
-                        // 根据段落类型估算高度
-                        if (/^\d+[\.\、]/.test(para.trim())) {
-                            // 数字标题
-                            const lines = Math.ceil(ctx.measureText(para.trim()).width / (width - 100));
-                            totalHeight += lines * lineHeight * 1.5 + lineHeight * 0.5;
-                        } else if (para.includes('：') && para.indexOf('：') < 30) {
-                            // 冒号标题
-                            const colonIndex = para.indexOf('：');
-                            const afterColon = para.substring(colonIndex + 1);
-                            
-                            if (afterColon.length > 30 || afterColon.includes('，')) {
-                                // 冒号后文本较长，另起一行
-                                const lines = Math.ceil(ctx.measureText(afterColon).width / (width - 100));
-                                totalHeight += lineHeight + lines * lineHeight + lineHeight * 0.5;
-                            } else {
-                                totalHeight += lineHeight + lineHeight * 0.5;
-                            }
-                        } else {
-                            // 普通段落
-                            const lines = Math.ceil(ctx.measureText(para.trim()).width / (width - 100));
-                            totalHeight += lines * lineHeight + lineHeight * 0.3;
-                        }
-                    }
-                    
-                    // 添加底部边距
-                    totalHeight += 50;
-                    
-                    // 设置画布大小
-                    canvas.width = width;
-                    canvas.height = totalHeight;
-                    
-                    // 重新获取上下文（因为调整了大小）
-                    const longCtx = canvas.getContext('2d');
-                    
-                    // 填充白色背景
-                    longCtx.fillStyle = '#ffffff';
-                    longCtx.fillRect(0, 0, width, totalHeight);
-                    
-                    // 绘制顶部渐变
-                    const gradient = longCtx.createLinearGradient(0, 0, 0, headerHeight);
-                    gradient.addColorStop(0, themeColor);  
-                    gradient.addColorStop(0.5, '#ffffff');
-                    longCtx.fillStyle = gradient;
-                    longCtx.fillRect(0, 0, width, headerHeight);
-                    
-                    // 绘制标题
-                    longCtx.fillStyle = '#ffffff';
-                    longCtx.font = 'bold 40px Arial, "Microsoft YaHei", "微软雅黑"';
-                    longCtx.fillText(title, 50, 80);
-                    
-                    // 绘制解释文本
-                    if (explanation) {
-                        longCtx.fillStyle = '#333333';
-                        longCtx.font = `${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
-                        wrapText(longCtx, explanation, 50, 120, width - 100, lineHeight);
-                    }
-                    
-                    // 开始绘制内容
-                    let y = headerHeight;
-                    const maxWidth = width - 100;
-                    
-                    // 绘制所有段落
-                    for (const paragraph of paragraphs) {
-                        if (paragraph.trim() === '') {
-                            y += lineHeight * 0.5;
-                            continue;
-                        }
-                        
-                        // 特殊格式处理
-                        // 1. 数字标题 (如 "1. 标题")
-                        if (/^\d+[\.\、]/.test(paragraph.trim())) {
-                            longCtx.fillStyle = themeColor;
-                            longCtx.font = `bold ${fontSize+6}px Arial, "Microsoft YaHei", "微软雅黑"`;
-                            y = wrapText(longCtx, paragraph.trim(), 50, y, maxWidth, lineHeight * 1.2);
-                            y += lineHeight * 0.5;
-                            
-                            // 重置样式
-                            longCtx.fillStyle = '#333333';
-                            longCtx.font = `${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
-                        } 
-                        // 2. 用户角度的心声部分
-                        else if (paragraph.trim().startsWith('用户角度的心声：')) {
-                            // 分离冒号前后的部分
-                            const colonIndex = paragraph.indexOf('：');
-                            const beforeColon = paragraph.substring(0, colonIndex + 1); // 包括冒号
-                            const afterColon = paragraph.substring(colonIndex + 1);
-                            
-                            // 冒号前的部分使用普通加粗样式
-                            longCtx.fillStyle = '#333333';
-                            longCtx.font = `bold ${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
-                            longCtx.fillText(beforeColon, 50, y);
-                            
-                            const beforeWidth = longCtx.measureText(beforeColon).width;
-                            
-                            // 冒号后的部分使用普通样式
-                            longCtx.font = `${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
-                            
-                            // 如果冒号后内容较长，另起一行
-                            if (afterColon.length > 20 || beforeWidth + longCtx.measureText(afterColon).width > maxWidth) {
-                                y += lineHeight;
-                                y = wrapText(longCtx, afterColon, 50, y, maxWidth, lineHeight);
-                            } else {
-                                // 短内容接着冒号后显示
-                                longCtx.fillText(afterColon, 50 + beforeWidth, y);
-                                y += lineHeight;
-                            }
-                            
-                            // 重置样式
-                            longCtx.fillStyle = '#333333';
-                            longCtx.font = `${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
-                        }
-                        // 3. 冒号标题
-                        else if (paragraph.includes('：') && paragraph.indexOf('：') < 30) {
-                            // 分离冒号前后的部分
-                            const colonIndex = paragraph.indexOf('：');
-                            const beforeColon = paragraph.substring(0, colonIndex + 1); // 包括冒号
-                            const afterColon = paragraph.substring(colonIndex + 1);
-                            
-                            // 冒号前的部分加粗显示
-                            longCtx.fillStyle = '#333333';
-                            longCtx.font = `bold ${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
-                            const beforeWidth = longCtx.measureText(beforeColon).width;
-                            longCtx.fillText(beforeColon, 50, y);
-                            
-                            // 冒号后的部分使用普通样式
-                            longCtx.font = `${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
-                            
-                            // 如果冒号后的内容较长或包含逗号等，另起一行
-                            if (afterColon.length > 30 || afterColon.includes('，') || beforeWidth + longCtx.measureText(afterColon).width > maxWidth) {
-                                y += lineHeight;
-                                y = wrapText(longCtx, afterColon, 50, y, maxWidth, lineHeight);
-                            } else {
-                                // 短内容接着冒号后显示
-                                longCtx.fillText(afterColon, 50 + beforeWidth, y);
-                                y += lineHeight;
-                            }
-                        }
-                        // 4. 普通段落
-                        else {
-                            longCtx.fillStyle = '#333333';
-                            longCtx.font = `${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
-                            y = wrapText(longCtx, paragraph.trim(), 50, y, maxWidth, lineHeight);
-                            y += lineHeight * 0.3;
-                        }
-                    }
-                    
-                    // 获取图像数据
-                    const imageData = canvas.toDataURL('image/png');
-                    
-                    // 显示预览（只显示当前选中的标签页）
-                    const activeTabId = document.querySelector('.tab.active').getAttribute('data-tab');
-                    if (tabId === activeTabId) {
-                        const previewArea = document.getElementById(`${tabId}-preview`);
-                        previewArea.style.display = 'flex';
-                        const previewImage = document.getElementById(`${tabId}-image`);
-                        previewImage.src = imageData;
-                        
-                        // 显示提示信息
-                        let pageInfoElem = document.getElementById(`${tabId}-page-info`);
-                        if (!pageInfoElem) {
-                            pageInfoElem = document.createElement('div');
-                            pageInfoElem.id = `${tabId}-page-info`;
-                            pageInfoElem.className = 'page-info';
-                            previewArea.appendChild(pageInfoElem);
-                        }
-                        pageInfoElem.textContent = `已生成长图，高度: ${totalHeight}px`;
-                    }
-                    
-                    // 转换为Blob并添加到ZIP
-                    fetch(imageData)
-                        .then(res => res.blob())
-                        .then(blob => {
-                            zip.file(`${title}_长图.png`, blob);
-                            
-                            // 处理下一个标签页
-                            currentIndex++;
-                            setTimeout(processNextTab, 50);
-                        })
-                        .catch(error => {
-                            console.error('处理图片数据出错:', error);
-                            currentIndex++;
-                            setTimeout(processNextTab, 50);
-                        });
-                }
-            } catch (error) {
-                console.error('导出所有内容为长图时出错:', error);
-                document.getElementById('progress-indicator').style.display = 'none';
-                alert('导出所有内容为长图时出错: ' + error.message);
-            }
-        }
+        // 最终高度（添加底部边距）
+        const finalHeight = y + 60;
+        
+        // 创建新的画布，尺寸刚好容纳内容
+        const finalCanvas = document.createElement('canvas');
+        finalCanvas.width = width;
+        finalCanvas.height = finalHeight;
+        const finalCtx = finalCanvas.getContext('2d');
+        
+        // 从临时画布复制内容到最终画布
+        finalCtx.drawImage(canvas, 0, 0, width, finalHeight, 0, 0, width, finalHeight);
+        
+        // 获取最终图像数据并转为Blob
+        finalCanvas.toBlob(function(blob) {
+            // 将图片添加到ZIP
+            zip.file(`${getTitle(tabId)}长图.png`, blob);
+            
+            // 处理下一个模块
+            processedCount++;
+            progressIndicator.textContent = `已处理 ${processedCount}/${modulesWithContent.length} 个模块`;
+            
+            // 延迟处理下一个，给UI留出时间更新
+            setTimeout(() => {
+                processNextModule(index + 1);
+            }, 200);
+        }, 'image/png');
+    }
+}
 
         // 初始化本地存储
         function initLocalStorage() {
@@ -1771,8 +1959,7 @@
                 'selling-points', 
                 'user-thoughts', 
                 'content-ideas', 
-                'project-analysis',
-                'low-competition'
+                'project-analysis'
             ];
             
             tabs.forEach(tab => {
@@ -1788,14 +1975,6 @@
                 editor.addEventListener('input', function() {
                     localStorage.setItem(`marketingTool-${tab}`, this.value);
                 });
-                
-                // 为清理符号复选框添加事件监听器
-                const cleanSymbolsCheckbox = document.getElementById(`${tab}-clean-symbols`);
-                if (cleanSymbolsCheckbox) {
-                    cleanSymbolsCheckbox.addEventListener('change', function() {
-                        handleCleanSymbolChange(tab);
-                    });
-                }
             });
         }
         
@@ -1804,8 +1983,20 @@
             try {
                 initLocalStorage();
                 
-                // 绑定导出所有标签页为长图按钮
-                document.getElementById('export-all-long-image').addEventListener('click', exportAllAsLongImage);
+                // 键盘快捷键支持
+                document.addEventListener('keydown', function(event) {
+                    // 如果多图预览打开时
+                    if (document.getElementById('multi-preview').style.display === 'flex') {
+                        // 左右箭头切换图片
+                        if (event.key === 'ArrowLeft') {
+                            showPrevImage();
+                        } else if (event.key === 'ArrowRight') {
+                            showNextImage();
+                        } else if (event.key === 'Escape') {
+                            closeMultiPreview();
+                        }
+                    }
+                });
                 
                 console.log('营销分析工具初始化完成');
             } catch (error) {
