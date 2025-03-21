@@ -459,6 +459,14 @@
                     </svg>
                     导出所有模块长图
                 </button>
+                <button class="export-all-button" style="margin-left: 10px; background-color: #2c3e50;" onclick="exportAllShortImages()">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                    导出所有模块短图
+                </button>
             </div>
         </header>
 
@@ -644,7 +652,7 @@
                 <div class="analysis-container">
                     <h2>低竞争用户人群分析</h2>
                     <div class="explanation">
-                        这个工具帮我们找到更多的用户群体，换个人群竞争可能更小。比如月子茶，发现除了常规产妇外，还有"小月子"这个特殊人群（意外怀孕后不想要的人群），他们同样需要调养身体，而且因为心理压力更大，付费意愿可能更强。
+                        很多时候当你觉得流量贵到无法承受时，换一个人群可能是比降价更明智的选择，其实同样的产品可以卖给完全不同的人群，而此时的价格与竞争度也会随之改变。比如月子茶这个产品，发现除了常规产妇外，还有"小月子"这个特殊人群（意外怀孕后不想要的人群），他们同样需要调养身体，而且因为心理压力更大，付费意愿可能更强。
                     </div>
                     <div class="settings-panel">
                         <h3>图像设置</h3>
@@ -913,7 +921,7 @@
             'high-pay': '这是找出能交更多钱、不差钱的人群。就像卖水果，有人就爱买精品礼盒装的，不在乎多花点钱。了解这些人为啥掏钱痛快，啥时候最乐意花钱，咱们就能针对性地提供服务，赚得更多，还省了不少力气。',
             'search-intent': '这是找出用户真正要下单时会搜的关键词。就像有人搜"今天能到的感冒药"和"感冒原因"，明显前者更急着买药。抓住这些词能帮咱们找到那些已经掏出钱包、就等着下单的人，省去大量白忙活，提高成交率。',
             'pre-needs': '这是找出用户产生购买行为前会有的一系列想法和行动。比如买房前，人们会先看学区、算首付、研究贷款政策等。了解这些环节，咱们就能提前布局，在竞争对手还没进场时就抢先接触客户，增加成交几率。',
-            'low-competition': '这个工具帮我们找到更多的用户群体，换个人群竞争可能更小。比如月子茶，发现除了常规产妇外，还有"小月子"这个特殊人群（意外怀孕后不想要的人群），他们同样需要调养身体，而且因为心理压力更大，付费意愿可能更强。',
+            'low-competition': '很多时候当你觉得流量贵到无法承受时，换一个人群可能是比降价更明智的选择，其实同样的产品可以卖给完全不同的人群，而此时的价格与竞争度也会随之改变。比如月子茶这个产品，发现除了常规产妇外，还有"小月子"这个特殊人群（意外怀孕后不想要的人群），他们同样需要调养身体，而且因为心理压力更大，付费意愿可能更强。',
             'selling-points': '这是找出产品最能打动人的亮点。就像卖西瓜，是"特甜"还是"特解渴"还是"无籽方便吃"更能吸引人？好的卖点能一句话就击中痛点、解决犹豫，让用户立刻掏钱，不再货比三家。这能大大提高转化率和复购率。',
             'user-thoughts': '这是揭秘用户脑子里在想啥、担心啥、最在乎啥。好比相亲，了解对方喜好和顾虑才能投其所好。知道用户购买时的心理活动，咱们就能打消他们的疑虑、强化他们的期待，设计更有共鸣的营销内容，事半功倍。',
             'content-ideas': '这是设计能吸引目标用户、让他们主动来找你的内容创意。就像钓鱼，得用对鱼饵才能钓到想要的鱼。好的引流内容能激发用户的好奇心和分享欲，吸引他们主动私信咨询，顺利引导到私域继续深入沟通，提高转化率。',
@@ -1992,6 +2000,158 @@ function exportAllLongImages() {
                 processNextModule(index + 1);
             }, 200);
         }, 'image/png');
+    }
+}
+
+// 导出所有模块短图
+function exportAllShortImages() {
+    const progressIndicator = document.getElementById('progress-indicator');
+    progressIndicator.style.display = 'block';
+    progressIndicator.textContent = '正在准备所有模块短图，请稍候...';
+    
+    // 获取所有模块ID
+    const moduleIds = [
+        'user-needs', 
+        'high-pay', 
+        'search-intent', 
+        'pre-needs', 
+        'low-competition',
+        'selling-points', 
+        'user-thoughts', 
+        'content-ideas', 
+        'project-analysis'
+    ];
+    
+    // 过滤出有内容的模块
+    const modulesWithContent = moduleIds.filter(id => {
+        const editor = document.getElementById(`${id}-editor`);
+        return editor && editor.value.trim().length > 0;
+    });
+    
+    if (modulesWithContent.length === 0) {
+        progressIndicator.style.display = 'none';
+        alert('没有找到任何有内容的模块，请先填写内容');
+        return;
+    }
+    
+    // 创建ZIP包和计数器
+    const zip = new JSZip();
+    let processedModules = 0;
+    let totalImages = 0;
+    let processedImages = 0;
+    
+    // 存储每个模块的图片数据
+    const allImageData = {};
+    
+    // 更新进度信息
+    progressIndicator.textContent = `正在处理 ${modulesWithContent.length} 个模块...`;
+    
+    // 为每个模块创建一个临时监听器来捕获生成的图片
+    modulesWithContent.forEach((tabId, index) => {
+        // 准备捕获图片的数组
+        allImageData[tabId] = [];
+        
+        // 创建一个临时容器来存储预览图片
+        const tempContainer = document.createElement('div');
+        tempContainer.style.display = 'none';
+        document.body.appendChild(tempContainer);
+        
+        // 保存原始预览区，稍后恢复
+        const originalPreviewArea = document.getElementById(`${tabId}-preview`);
+        const originalDisplay = originalPreviewArea.style.display;
+        
+        // 临时修改预览区域的引用
+        const tempPreviewArea = document.createElement('div');
+        tempPreviewArea.id = `${tabId}-preview-temp`;
+        tempPreviewArea.style.display = 'none';
+        const tempPreviewImg = document.createElement('img');
+        tempPreviewImg.id = `${tabId}-image-temp`;
+        tempPreviewArea.appendChild(tempPreviewImg);
+        tempContainer.appendChild(tempPreviewArea);
+        
+        // 覆盖默认的addImageToMultiPreview函数，捕获生成的图片
+        const originalAddImageFunction = window.addImageToMultiPreview;
+        window.addImageToMultiPreview = function(imageData, title, page, totalPages) {
+            // 保存图片数据
+            allImageData[tabId].push({
+                url: imageData,
+                title: title,
+                page: page,
+                totalPages: totalPages
+            });
+            
+            // 如果是最后一页，触发下一个模块的处理
+            if (page === totalPages) {
+                processedModules++;
+                totalImages += totalPages;
+                
+                // 如果所有模块都处理完毕，开始创建ZIP
+                if (processedModules === modulesWithContent.length) {
+                    // 恢复原始函数
+                    window.addImageToMultiPreview = originalAddImageFunction;
+                    
+                    // 处理所有收集到的图片
+                    progressIndicator.textContent = `正在打包 ${totalImages} 张图片...`;
+                    processAllCollectedImages();
+                }
+            }
+        };
+        
+        // 清空多图预览，避免干扰
+        clearMultiPreview();
+        
+        // 调用现有的生成图片函数
+        setTimeout(() => {
+            progressIndicator.textContent = `正在处理: ${getTitle(tabId)} (${index + 1}/${modulesWithContent.length})`;
+            generateImage(tabId);
+        }, index * 300); // 分散调用时间，避免浏览器卡顿
+    });
+    
+    // 处理所有收集到的图片并创建ZIP
+    function processAllCollectedImages() {
+        // 处理每个模块的图片
+        let promises = [];
+        
+        for (const tabId in allImageData) {
+            const images = allImageData[tabId];
+            
+            images.forEach((image, idx) => {
+                const promise = fetch(image.url)
+                    .then(res => res.blob())
+                    .then(blob => {
+                        // 添加到ZIP，创建模块文件夹
+                        const fileName = `${image.title}/${image.title}_第${image.page}页.png`;
+                        zip.file(fileName, blob);
+                        
+                        // 更新进度
+                        processedImages++;
+                        progressIndicator.textContent = `正在打包: ${processedImages}/${totalImages} 张图片`;
+                    });
+                
+                promises.push(promise);
+            });
+        }
+        
+        // 当所有图片都处理完毕后生成ZIP
+        Promise.all(promises).then(() => {
+            progressIndicator.textContent = '正在生成ZIP包，请稍候...';
+            
+            zip.generateAsync({type: 'blob'}).then(function(content) {
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(content);
+                link.download = '所有模块短图.zip';
+                link.click();
+                
+                progressIndicator.style.display = 'none';
+                
+                // 恢复原始的多图预览函数和UI
+                clearMultiPreview();
+            });
+        }).catch(error => {
+            console.error('打包图片时出错:', error);
+            progressIndicator.style.display = 'none';
+            alert('生成ZIP包时出错: ' + error.message);
+        });
     }
 }
 
