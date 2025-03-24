@@ -478,6 +478,7 @@
                 <button class="tab" data-tab="pre-needs">前置需求分析</button>
                 <button class="tab" data-tab="low-competition">低竞争用户人群</button>
                 <button class="tab" data-tab="selling-points">卖点分析</button>
+                <button class="tab" data-tab="diff-service">差异化服务卖点</button>
                 <button class="tab" data-tab="user-thoughts">用户心理分析</button>
                 <button class="tab" data-tab="content-ideas">引流笔记思路</button>
                 <button class="tab" data-tab="project-analysis">项目分析介绍</button>
@@ -652,7 +653,7 @@
                 <div class="analysis-container">
                     <h2>低竞争用户人群分析</h2>
                     <div class="explanation">
-                        很多时候当你觉得流量贵到无法承受时，换一个人群可能是比降价更明智的选择，其实同样的产品可以卖给完全不同的人群，而此时的价格与竞争度也会随之改变。比如月子茶这个产品，发现除了常规产妇外，还有"小月子"这个特殊人群（意外怀孕后不想要的人群），他们同样需要调养身体，而且因为心理压力更大，付费意愿可能更强。
+                        这个工具是提供换人群思考，其实同样的产品可以卖给完全不同的人群，而此时的价格与竞争度也会随之改变。比如月子茶这个产品，发现除了常规产妇外，还有"小月子"这个特殊人群（意外怀孕后不想要的人群），他们同样需要调养身体，而且因为心理压力更大，付费意愿可能更强。
                     </div>
                     <div class="settings-panel">
                         <h3>图像设置</h3>
@@ -725,6 +726,47 @@
                     <div class="preview-area" id="selling-points-preview">
                         <h3>预览</h3>
                         <img id="selling-points-image" alt="预览图">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 差异化服务卖点分析 -->
+            <div class="tab-content" id="diff-service">
+                <div class="analysis-container">
+                    <h2>差异化服务卖点分析</h2>
+                    <div class="explanation">
+                        当所有竞争对手都在提供标准化服务时，差异化服务成为脱颖而出的关键。就像旅游行业，大多数商家只解决出行、住宿和门票，但现在用户更看重的是独特体验。比如提供看孩子服务让父母也能轻松享受旅行，或带客户去尝当地人排队的苍蝇小馆而非旅游团餐厅，这些特色服务才是真正能拉开与竞争对手差距的关键。
+                    </div>
+                    <div class="settings-panel">
+                        <h3>图像设置</h3>
+                        <div class="settings-group">
+                            <div class="settings-item">
+                                <label for="font-size">字体大小:</label>
+                                <select id="diff-service-font-size">
+                                    <option value="20">小</option>
+                                    <option value="22" selected>中</option>
+                                    <option value="24">大</option>
+                                </select>
+                            </div>
+                            <div class="settings-item">
+                                <label for="line-height">行高:</label>
+                                <select id="diff-service-line-height">
+                                    <option value="30">紧凑</option>
+                                    <option value="34" selected>标准</option>
+                                    <option value="38">宽松</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <textarea class="editor" id="diff-service-editor" placeholder="粘贴AI生成的差异化服务卖点分析内容..."></textarea>
+                    <div class="button-group">
+                        <button class="button" onclick="generateImage('diff-service')">预览3:4短图</button>
+                        <button class="button secondary" onclick="generateLongImage('diff-service')">预览长图</button>
+                        <button class="button secondary" onclick="clearEditor('diff-service')">清空内容</button>
+                    </div>
+                    <div class="preview-area" id="diff-service-preview">
+                        <h3>预览</h3>
+                        <img id="diff-service-image" alt="预览图">
                     </div>
                 </div>
             </div>
@@ -897,6 +939,7 @@
             'pre-needs': '#e74c3c',     // 红色
             'low-competition': '#16a085', // 青色
             'selling-points': '#f39c12', // 橙色
+            'diff-service': '#d35400',  // 深橙色
             'user-thoughts': '#3498db',  // 天蓝色
             'content-ideas': '#9b59b6',  // 紫红色
             'project-analysis': '#1abc9c' // 青绿色
@@ -910,6 +953,7 @@
             'pre-needs': '前置需求分析',
             'low-competition': '低竞争用户人群分析',
             'selling-points': '卖点分析',
+            'diff-service': '差异化服务卖点分析',
             'user-thoughts': '用户心理分析',
             'content-ideas': '引流笔记思路',
             'project-analysis': '项目分析介绍'
@@ -921,8 +965,9 @@
             'high-pay': '这是找出能交更多钱、不差钱的人群。就像卖水果，有人就爱买精品礼盒装的，不在乎多花点钱。了解这些人为啥掏钱痛快，啥时候最乐意花钱，咱们就能针对性地提供服务，赚得更多，还省了不少力气。',
             'search-intent': '这是找出用户真正要下单时会搜的关键词。就像有人搜"今天能到的感冒药"和"感冒原因"，明显前者更急着买药。抓住这些词能帮咱们找到那些已经掏出钱包、就等着下单的人，省去大量白忙活，提高成交率。',
             'pre-needs': '这是找出用户产生购买行为前会有的一系列想法和行动。比如买房前，人们会先看学区、算首付、研究贷款政策等。了解这些环节，咱们就能提前布局，在竞争对手还没进场时就抢先接触客户，增加成交几率。',
-            'low-competition': '很多时候当你觉得流量贵到无法承受时，换一个人群可能是比降价更明智的选择，其实同样的产品可以卖给完全不同的人群，而此时的价格与竞争度也会随之改变。比如月子茶这个产品，发现除了常规产妇外，还有"小月子"这个特殊人群（意外怀孕后不想要的人群），他们同样需要调养身体，而且因为心理压力更大，付费意愿可能更强。',
+            'low-competition': '这个工具是提供换人群思考，其实同样的产品可以卖给完全不同的人群，而此时的价格与竞争度也会随之改变。比如月子茶这个产品，发现除了常规产妇外，还有"小月子"这个特殊人群（意外怀孕后不想要的人群），他们同样需要调养身体，而且因为心理压力更大，付费意愿可能更强。',
             'selling-points': '这是找出产品最能打动人的亮点。就像卖西瓜，是"特甜"还是"特解渴"还是"无籽方便吃"更能吸引人？好的卖点能一句话就击中痛点、解决犹豫，让用户立刻掏钱，不再货比三家。这能大大提高转化率和复购率。',
+            'diff-service': '当所有竞争对手都在提供标准化服务时，差异化服务成为脱颖而出的关键。就像旅游行业，大多数商家只解决出行、住宿和门票，但现在用户更看重的是独特体验。比如提供看孩子服务让父母也能轻松享受旅行，或带客户去尝当地人排队的苍蝇小馆而非旅游团餐厅，这些特色服务才是真正能拉开与竞争对手差距的关键。',
             'user-thoughts': '这是揭秘用户脑子里在想啥、担心啥、最在乎啥。好比相亲，了解对方喜好和顾虑才能投其所好。知道用户购买时的心理活动，咱们就能打消他们的疑虑、强化他们的期待，设计更有共鸣的营销内容，事半功倍。',
             'content-ideas': '这是设计能吸引目标用户、让他们主动来找你的内容创意。就像钓鱼，得用对鱼饵才能钓到想要的鱼。好的引流内容能激发用户的好奇心和分享欲，吸引他们主动私信咨询，顺利引导到私域继续深入沟通，提高转化率。',
             'project-analysis': '这是对项目进行全面体检，看看它值不值得投入时间精力和金钱。就像创业前先考察市场，免得热情劲过后发现是个无底洞。好的项目分析能帮咱们看清项目的真实前景和风险，避免盲目跟风和投资亏损，做出更靠谱的决策。'
