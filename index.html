@@ -452,6 +452,52 @@
             padding: 2px 5px;
         }
         
+        /* 自定义列表符号样式 */
+        .bullet-preview {
+            width: 24px;
+            height: 24px;
+            display: inline-block;
+            margin-right: 8px;
+            vertical-align: middle;
+            text-align: center;
+            line-height: 24px;
+            font-size: 16px;
+        }
+        
+        /* 列表符号样式预览容器 */
+        .bullet-style-panel {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+            padding: 10px;
+            background: #f5f5f5;
+            border-radius: 5px;
+        }
+        
+        .bullet-style-option {
+            width: 30px;
+            height: 30px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            background: white;
+            transition: all 0.2s;
+        }
+        
+        .bullet-style-option:hover {
+            transform: scale(1.1);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .bullet-style-option.active {
+            border: 2px solid #4a6cf7;
+            transform: scale(1.1);
+        }
+        
         /* 主题预览面板 */
         .theme-preview-panel {
             position: fixed;
@@ -557,6 +603,14 @@
                         <option value="tropical">热带风情</option>
                     </select>
                     <button id="preview-theme-button" style="margin-left: 10px; padding: 5px 10px; background: #f0f0f0; border: 1px solid #ddd; border-radius: 4px; cursor: pointer;" onclick="showThemePreview()">预览风格</button>
+                </div>
+                
+                <!-- 添加全局列表符号样式设置 -->
+                <div class="global-bullet-selector" style="margin-top: 15px; text-align: center;">
+                    <label style="color: #666; display: block; margin-bottom: 5px;">列表符号风格:</label>
+                    <div class="bullet-style-panel" id="global-bullet-style-panel">
+                        <!-- 样式选项将通过JavaScript动态生成 -->
+                    </div>
                 </div>
             </div>
         </header>
@@ -1835,22 +1889,17 @@
                         else if (/^\s*[-•*⦿◉◆◇○●✓☑]/.test(paragraph.trim())) {
                             const trimmedPara = paragraph.trim();
                             
-                            // 识别原始符号并替换成多样化的符号
-                            let bulletSymbol = '• ';
-                            const originalSymbols = ['-', '•', '*', '⦿', '◉', '◆', '◇', '○', '●', '✓', '☑'];
-                            const symbolIndex = originalSymbols.findIndex(s => trimmedPara.startsWith(s));
-                            
-                            // 如果找到原始符号，确定使用的符号
-                            if (symbolIndex >= 0) {
-                                // 使用找到的符号或在多样化符号中选择
-                                const diverseSymbols = ['• ', '◆ ', '○ ', '● ', '✓ ', '▶ ', '▪ ', '◉ '];
-                                bulletSymbol = diverseSymbols[symbolIndex % diverseSymbols.length];
-                            }
-                            
+                            // 使用全局定义的列表符号
+                            let bulletSymbol = getBulletSymbol() + ' ';
                             const content = trimmedPara.replace(/^[-•*⦿◉◆◇○●✓☑]\s*/, '');
                             
-                            // 使用主题色绘制符号
-                            ctx.fillStyle = themeColor;
+                            // 使用主题色绘制符号，如果该符号可着色
+                            if (isBulletColorful()) {
+                                ctx.fillStyle = themeColor;
+                            } else {
+                                ctx.fillStyle = '#333333'; // 对于表情符号使用黑色
+                            }
+                            
                             ctx.font = `bold ${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
                             ctx.fillText(bulletSymbol, 50, y);
                             
@@ -2887,6 +2936,144 @@ function exportAllShortImages() {
                 enhanceThemeSelectors();
             }, 500);
         });
+
+        // 列表符号样式集合
+        const bulletStyles = [
+            // 几何形状
+            { id: 'circle', symbol: '●', colorful: true },
+            { id: 'square', symbol: '■', colorful: true },
+            { id: 'diamond', symbol: '◆', colorful: true },
+            { id: 'triangle', symbol: '▲', colorful: true },
+            { id: 'hollow-circle', symbol: '○', colorful: true },
+            { id: 'hollow-square', symbol: '□', colorful: true },
+            { id: 'hollow-diamond', symbol: '◇', colorful: true },
+            // 表情符号
+            { id: 'star', symbol: '★', colorful: true },
+            { id: 'heart', symbol: '❤', colorful: true },
+            { id: 'flower', symbol: '✿', colorful: true },
+            { id: 'arrow', symbol: '➤', colorful: true },
+            // 表情包
+            { id: 'check', symbol: '✓', colorful: true },
+            { id: 'smiley', symbol: '😊', colorful: false },
+            { id: 'thumbs-up', symbol: '👍', colorful: false },
+            { id: 'fire', symbol: '🔥', colorful: false },
+            { id: 'bulb', symbol: '💡', colorful: false }
+        ];
+        
+        // 当前选择的列表符号样式
+        let currentBulletStyle = bulletStyles[0]; // 默认使用第一个样式
+
+        // 初始化列表符号样式选择器
+        function initBulletStyleSelector() {
+            const panel = document.getElementById('global-bullet-style-panel');
+            if (!panel) return;
+            
+            panel.innerHTML = ''; // 清空现有内容
+            
+            bulletStyles.forEach(style => {
+                const option = document.createElement('div');
+                option.className = 'bullet-style-option';
+                option.dataset.bulletId = style.id;
+                
+                // 选中状态指示
+                if (currentBulletStyle.id === style.id) {
+                    option.classList.add('active');
+                }
+                
+                // 设置背景色（对于可着色的符号）
+                if (style.colorful) {
+                    // 为不同的符号设置不同的颜色，使示例更生动
+                    const colorMap = {
+                        'circle': '#FF5722',
+                        'square': '#2196F3',
+                        'diamond': '#4CAF50',
+                        'triangle': '#9C27B0',
+                        'hollow-circle': '#FF9800',
+                        'hollow-square': '#3F51B5',
+                        'hollow-diamond': '#E91E63',
+                        'star': '#FFC107',
+                        'heart': '#F44336',
+                        'flower': '#8BC34A',
+                        'arrow': '#607D8B',
+                        'check': '#00BCD4'
+                    };
+                    
+                    option.style.color = colorMap[style.id] || '#333333';
+                }
+                
+                option.textContent = style.symbol;
+                
+                // 点击事件，选择样式
+                option.addEventListener('click', function() {
+                    // 移除所有选项的active类
+                    document.querySelectorAll('.bullet-style-option').forEach(opt => {
+                        opt.classList.remove('active');
+                    });
+                    
+                    // 添加当前选项的active类
+                    this.classList.add('active');
+                    
+                    // 更新当前选择的样式
+                    const selectedId = this.dataset.bulletId;
+                    currentBulletStyle = bulletStyles.find(style => style.id === selectedId);
+                    
+                    // 显示提示信息
+                    const progressIndicator = document.getElementById('progress-indicator');
+                    progressIndicator.style.display = 'block';
+                    progressIndicator.textContent = `已将列表符号样式更改为: ${currentBulletStyle.symbol}`;
+                    
+                    // 3秒后隐藏提示
+                    setTimeout(() => {
+                        progressIndicator.style.display = 'none';
+                    }, 3000);
+                });
+                
+                panel.appendChild(option);
+            });
+        }
+
+        // 获取当前的列表符号样式
+        function getBulletSymbol() {
+            return currentBulletStyle.symbol;
+        }
+        
+        // 获取当前的列表符号是否可着色
+        function isBulletColorful() {
+            return currentBulletStyle.colorful;
+        }
+
+        // 在页面加载完成后执行初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            initThemeSelectors();
+            initBulletStyleSelector(); // 初始化列表符号样式选择器
+            setTimeout(() => {
+                updateExportButtonColors();
+                enhanceThemeSelectors();
+            }, 500);
+        });
+
+        // 估算段落高度函数
+        function estimateParagraphHeight(paragraph, fontSize, lineHeight, maxWidth) {
+            // 无序列表项的处理
+            if (/^\s*[-•*⦿◉◆◇○●✓☑]/.test(paragraph.trim())) {
+                // 无序列表项用稍大的缩进和较大的行高
+                const content = paragraph.trim().replace(/^[-•*⦿◉◆◇○●✓☑]\s*/, '');
+                const bulletWidth = fontSize; // 估计符号宽度
+                
+                const lines = Math.ceil(estimateTextWidth(content, fontSize) / (maxWidth - bulletWidth - 50));
+                return lines * lineHeight * 1.2; // 给无序列表项一点额外的空间
+            }
+            // 其他类型段落的处理保持不变
+            else if (/^\d+[.、]/.test(paragraph.trim())) {
+                // 编号标题用更大的行高
+                const lines = Math.ceil(estimateTextWidth(paragraph, fontSize) / maxWidth);
+                return lines * lineHeight * 1.5;
+            } else {
+                // 普通段落
+                const lines = Math.ceil(estimateTextWidth(paragraph, fontSize) / maxWidth);
+                return lines * lineHeight;
+            }
+        }
     </script>
 </body>
 </html>
