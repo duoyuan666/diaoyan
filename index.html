@@ -434,6 +434,83 @@
             border-radius: 4px;
             font-size: 14px;
         }
+
+        /* 添加预设风格样式 */
+        .theme-preview {
+            width: 24px;
+            height: 24px;
+            display: inline-block;
+            border-radius: 50%;
+            margin-right: 8px;
+            vertical-align: middle;
+            border: 1px solid #ddd;
+        }
+        
+        .theme-option {
+            display: flex;
+            align-items: center;
+            padding: 2px 5px;
+        }
+        
+        /* 主题预览面板 */
+        .theme-preview-panel {
+            position: fixed;
+            right: 20px;
+            bottom: 20px;
+            width: 280px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+            padding: 15px;
+            z-index: 1000;
+            display: none;
+            overflow: hidden;
+        }
+        
+        .theme-preview-header {
+            background: #4a6cf7;
+            color: white;
+            padding: 10px;
+            margin: -15px -15px 15px -15px;
+            border-radius: 10px 10px 0 0;
+            position: relative;
+        }
+        
+        .preview-close {
+            position: absolute;
+            right: 10px;
+            top: 10px;
+            color: white;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        
+        .theme-preview-sample {
+            border: 1px solid #eee;
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .theme-preview-sample-header {
+            font-weight: bold;
+            font-size: 18px;
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            border-bottom: 2px solid;
+        }
+        
+        .theme-preview-sample-text {
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        
+        .theme-preview-footer {
+            display: flex;
+            justify-content: flex-end;
+        }
     </style>
 </head>
 <body>
@@ -467,6 +544,20 @@
                     </svg>
                     导出所有模块短图
                 </button>
+                
+                <!-- 添加全局风格选择 -->
+                <div class="global-theme-selector" style="margin-top: 15px; text-align: center;">
+                    <label for="global-theme" style="color: #666; margin-right: 10px;">全局风格设置:</label>
+                    <select id="global-theme" onchange="applyGlobalTheme()" style="padding: 5px 10px; border: 1px solid #ddd; border-radius: 4px;">
+                        <option value="">选择一个全局风格</option>
+                        <option value="default">默认风格</option>
+                        <option value="vibrant">活力多彩</option>
+                        <option value="warm">温暖橙棕</option>
+                        <option value="fresh">清新自然</option>
+                        <option value="tropical">热带风情</option>
+                    </select>
+                    <button id="preview-theme-button" style="margin-left: 10px; padding: 5px 10px; background: #f0f0f0; border: 1px solid #ddd; border-radius: 4px; cursor: pointer;" onclick="showThemePreview()">预览风格</button>
+                </div>
             </div>
         </header>
 
@@ -654,7 +745,7 @@
                 <div class="analysis-container">
                     <h2>低竞争用户人群分析</h2>
                     <div class="explanation">
-                        很多时候当你觉得流量贵到无法承受时，换一个人群可能是比降价更明智的选择，其实同样的产品可以卖给完全不同的人群，而此时的价格与竞争度也会随之改变。比如月子茶这个产品，发现除了常规产妇外，还有"小月子"这个特殊人群（意外怀孕后不想要的人群），他们同样需要调养身体，而且因为心理压力更大，付费意愿可能更强。
+                        这个工具是帮我们找到更多的人群，比如月子茶这个产品，发现除了常规产妇外，还有"小月子"这个特殊人群（意外怀孕后不想要的人群），他们同样需要调养身体，而且因为心理压力更大，付费意愿可能更强。
                     </div>
                     <div class="settings-panel">
                         <h3>图像设置</h3>
@@ -736,7 +827,7 @@
                 <div class="analysis-container">
                     <h2>差异化服务卖点分析</h2>
                     <div class="explanation">
-                        当所有竞争对手都在提供标准化服务时，差异化服务成为脱颖而出的关键。就像旅游行业，大多数商家只解决出行、住宿和门票，但现在用户更看重的是独特体验。比如提供看孩子服务让父母也能轻松享受旅行，或带客户去尝当地人排队的苍蝇小馆而非旅游团餐厅，这些特色服务才是真正能拉开与竞争对手差距的关键。
+                        这个工具是帮我们分析差异化卖点服务，比如旅游赛道提供看孩子服务让父母也能轻松享受旅行，或带客户去尝当地人排队的苍蝇小馆而非旅游团餐厅，这些差异化服务才是真正能拉开与竞争对手差距的关键。
                     </div>
                     <div class="settings-panel">
                         <h3>图像设置</h3>
@@ -837,6 +928,16 @@
                                     <option value="30">紧凑</option>
                                     <option value="34" selected>标准</option>
                                     <option value="38">宽松</option>
+                                </select>
+                            </div>
+                            <div class="settings-item">
+                                <label for="theme-style">风格:</label>
+                                <select id="user-thoughts-theme">
+                                    <option value="default">默认风格</option>
+                                    <option value="vibrant">活力多彩</option>
+                                    <option value="warm">温暖橙棕</option>
+                                    <option value="fresh">清新自然</option>
+                                    <option value="tropical">热带风情</option>
                                 </select>
                             </div>
                         </div>
@@ -966,6 +1067,25 @@
         <div class="progress-indicator" id="progress-indicator">
             正在生成图片，请稍候...
         </div>
+        
+        <!-- 添加主题预览面板 -->
+        <div class="theme-preview-panel" id="theme-preview-panel">
+            <div class="theme-preview-header">
+                <span id="preview-theme-name">主题预览</span>
+                <button class="preview-close" onclick="hideThemePreview()">×</button>
+            </div>
+            <div class="theme-preview-sample" id="preview-sample-container">
+                <div class="theme-preview-sample-header" id="preview-sample-header">
+                    安全性与可靠性
+                </div>
+                <div class="theme-preview-sample-text" id="preview-sample-text">
+                    安全是压倒一切的首要考虑因素。用户非常担心充电桩是否会出现过热、漏电、火灾等安全隐患。他们关注产品的认证、质保和安全保障机制，害怕"充着充着就着火了"或者"把整栋楼的电都给烧了"的情况出现。
+                </div>
+            </div>
+            <div class="theme-preview-footer">
+                <button style="padding: 5px 10px; background-color: #4a6cf7; color: white; border: none; border-radius: 4px; cursor: pointer;" onclick="applyPreviewTheme()">应用此风格</button>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -986,6 +1106,93 @@
             'user-thoughts': '#3498db',  // 天蓝色
             'content-ideas': '#9b59b6',  // 紫红色
             'project-analysis': '#1abc9c' // 青绿色
+        };
+        
+        // 主题样式映射
+        const themeStyles = {
+            'default': {
+                primary: null, // 使用默认的colorMap
+                background: '#ffffff',
+                text: '#333333',
+                titleBackground: 'gradient', // 使用渐变
+                titleText: '#ffffff'
+            },
+            'vibrant': {
+                primary: {
+                    'user-needs': '#FF0266',
+                    'high-pay': '#FF5722',
+                    'search-intent': '#FFC107',
+                    'pre-needs': '#8BC34A',
+                    'low-competition': '#00BCD4',
+                    'selling-points': '#2196F3',
+                    'diff-service': '#673AB7',
+                    'trust-words': '#E91E63',
+                    'user-thoughts': '#F44336',
+                    'content-ideas': '#CDDC39',
+                    'project-analysis': '#009688'
+                },
+                background: '#ffffff',
+                text: '#424242',
+                titleBackground: 'gradient',
+                titleText: '#ffffff'
+            },
+            'warm': {
+                primary: {
+                    'user-needs': '#FF9800',
+                    'high-pay': '#FF7043',
+                    'search-intent': '#FFB74D',
+                    'pre-needs': '#FFA726',
+                    'low-competition': '#FB8C00',
+                    'selling-points': '#F57C00',
+                    'diff-service': '#EF6C00',
+                    'trust-words': '#E65100',
+                    'user-thoughts': '#D84315',
+                    'content-ideas': '#BF360C',
+                    'project-analysis': '#FF5722'
+                },
+                background: '#FFF8E1',
+                text: '#5D4037',
+                titleBackground: 'gradient',
+                titleText: '#ffffff'
+            },
+            'fresh': {
+                primary: {
+                    'user-needs': '#4CAF50',
+                    'high-pay': '#8BC34A',
+                    'search-intent': '#CDDC39',
+                    'pre-needs': '#009688',
+                    'low-competition': '#3F51B5',
+                    'selling-points': '#00BCD4',
+                    'diff-service': '#2196F3',
+                    'trust-words': '#00796B',
+                    'user-thoughts': '#43A047',
+                    'content-ideas': '#7CB342',
+                    'project-analysis': '#26A69A'
+                },
+                background: '#F1F8E9',
+                text: '#33691E',
+                titleBackground: 'gradient',
+                titleText: '#ffffff'
+            },
+            'tropical': {
+                primary: {
+                    'user-needs': '#FF4D4D',
+                    'high-pay': '#FF9A00',
+                    'search-intent': '#FFEA00',
+                    'pre-needs': '#00C853',
+                    'low-competition': '#00E5FF',
+                    'selling-points': '#D500F9',
+                    'diff-service': '#AA00FF',
+                    'trust-words': '#00E676',
+                    'user-thoughts': '#FFC400',
+                    'content-ideas': '#FF3D00',
+                    'project-analysis': '#00B0FF'
+                },
+                background: '#FFFDE7',
+                text: '#3E2723',
+                titleBackground: 'gradient',
+                titleText: '#ffffff'
+            }
         };
         
         // 标题映射
@@ -1009,9 +1216,9 @@
             'high-pay': '这是找出能交更多钱、不差钱的人群。就像卖水果，有人就爱买精品礼盒装的，不在乎多花点钱。了解这些人为啥掏钱痛快，啥时候最乐意花钱，咱们就能针对性地提供服务，赚得更多，还省了不少力气。',
             'search-intent': '这是找出用户真正要下单时会搜的关键词。就像有人搜"今天能到的感冒药"和"感冒原因"，明显前者更急着买药。抓住这些词能帮咱们找到那些已经掏出钱包、就等着下单的人，省去大量白忙活，提高成交率。',
             'pre-needs': '这是找出用户产生购买行为前会有的一系列想法和行动。比如买房前，人们会先看学区、算首付、研究贷款政策等。了解这些环节，咱们就能提前布局，在竞争对手还没进场时就抢先接触客户，增加成交几率。',
-            'low-competition': '很多时候当你觉得流量贵到无法承受时，换一个人群可能是比降价更明智的选择，其实同样的产品可以卖给完全不同的人群，而此时的价格与竞争度也会随之改变。比如月子茶这个产品，发现除了常规产妇外，还有"小月子"这个特殊人群（意外怀孕后不想要的人群），他们同样需要调养身体，而且因为心理压力更大，付费意愿可能更强。',
+            'low-competition': '这个工具是帮我们找到更多的人群，比如月子茶这个产品，发现除了常规产妇外，还有"小月子"这个特殊人群（意外怀孕后不想要的人群），他们同样需要调养身体，而且因为心理压力更大，付费意愿可能更强。',
             'selling-points': '这是找出产品最能打动人的亮点。就像卖西瓜，是"特甜"还是"特解渴"还是"无籽方便吃"更能吸引人？好的卖点能一句话就击中痛点、解决犹豫，让用户立刻掏钱，不再货比三家。这能大大提高转化率和复购率。',
-            'diff-service': '当所有竞争对手都在提供标准化服务时，差异化服务成为脱颖而出的关键。就像旅游行业，大多数商家只解决出行、住宿和门票，但现在用户更看重的是独特体验。比如提供看孩子服务让父母也能轻松享受旅行，或带客户去尝当地人排队的苍蝇小馆而非旅游团餐厅，这些特色服务才是真正能拉开与竞争对手差距的关键。',
+            'diff-service': '这个工具是帮我们分析差异化卖点服务，比如旅游赛道提供看孩子服务让父母也能轻松享受旅行，或带客户去尝当地人排队的苍蝇小馆而非旅游团餐厅，这些差异化服务才是真正能拉开与竞争对手差距的关键。',
             'trust-words': '做前端内容，不仅要让人看到我们，更要让人信任我们，建立信任是完成转化的核心。通过巧妙的话术，展示我们的专业性、经验和价值，能快速拉近与潜在客户的距离。这个工具能够给出很多信任话术的参考。',
             'user-thoughts': '这是揭秘用户脑子里在想啥、担心啥、最在乎啥。好比相亲，了解对方喜好和顾虑才能投其所好。知道用户购买时的心理活动，咱们就能打消他们的疑虑、强化他们的期待，设计更有共鸣的营销内容，事半功倍。',
             'content-ideas': '这是设计能吸引目标用户、让他们主动来找你的内容创意。就像钓鱼，得用对鱼饵才能钓到想要的鱼。好的引流内容能激发用户的好奇心和分享欲，吸引他们主动私信咨询，顺利引导到私域继续深入沟通，提高转化率。',
@@ -1020,7 +1227,81 @@
         
         // 获取颜色
         function getColorForTab(tabId) {
+            // 先检查是否有用户选择的主题
+            const themeSelect = document.getElementById(`${tabId}-theme`);
+            if (themeSelect) {
+                const selectedTheme = themeSelect.value;
+                const themeStyle = themeStyles[selectedTheme];
+                
+                if (themeStyle && themeStyle.primary) {
+                    if (themeStyle.primary[tabId]) {
+                        return themeStyle.primary[tabId];
+                    }
+                }
+            }
+            
+            // 如果没有找到用户主题或该主题没有为此选项卡定义颜色，则返回默认颜色
             return colorMap[tabId] || '#4a6cf7';
+        }
+        
+        // 获取背景颜色
+        function getBackgroundColor(tabId) {
+            const themeSelect = document.getElementById(`${tabId}-theme`);
+            if (themeSelect) {
+                const selectedTheme = themeSelect.value;
+                const themeStyle = themeStyles[selectedTheme];
+                
+                if (themeStyle && themeStyle.background) {
+                    return themeStyle.background;
+                }
+            }
+            
+            return '#ffffff'; // 默认背景色
+        }
+        
+        // 获取文本颜色
+        function getTextColor(tabId) {
+            const themeSelect = document.getElementById(`${tabId}-theme`);
+            if (themeSelect) {
+                const selectedTheme = themeSelect.value;
+                const themeStyle = themeStyles[selectedTheme];
+                
+                if (themeStyle && themeStyle.text) {
+                    return themeStyle.text;
+                }
+            }
+            
+            return '#333333'; // 默认文本颜色
+        }
+        
+        // 获取标题背景样式类型
+        function getTitleBackgroundStyle(tabId) {
+            const themeSelect = document.getElementById(`${tabId}-theme`);
+            if (themeSelect) {
+                const selectedTheme = themeSelect.value;
+                const themeStyle = themeStyles[selectedTheme];
+                
+                if (themeStyle && themeStyle.titleBackground) {
+                    return themeStyle.titleBackground;
+                }
+            }
+            
+            return 'gradient'; // 默认使用渐变
+        }
+        
+        // 获取标题文本颜色
+        function getTitleTextColor(tabId) {
+            const themeSelect = document.getElementById(`${tabId}-theme`);
+            if (themeSelect) {
+                const selectedTheme = themeSelect.value;
+                const themeStyle = themeStyles[selectedTheme];
+                
+                if (themeStyle && themeStyle.titleText) {
+                    return themeStyle.titleText;
+                }
+            }
+            
+            return '#ffffff'; // 默认标题文字颜色
         }
         
         // 获取标题
@@ -1247,6 +1528,9 @@
             
             return newY;
         }
+        
+        // 移除增强版文本换行函数
+        // ... existing code ...
 
         // 下载图片
         function downloadImage(dataUrl, filename) {
@@ -1338,6 +1622,10 @@
                         // 数字标题
                         const lines = Math.ceil(para.length * fontSize / (width - 100));
                         paraHeight = lines * lineHeightEstimate * 1.5;
+                    } else if (/^\s*[-•*⦿◉◆◇○●✓☑]/.test(para)) {
+                        // 无序列表项
+                        const lines = Math.ceil(para.length * fontSize / (width - 100));
+                        paraHeight = lines * lineHeightEstimate * 1.2;
                     } else if (para.includes('：') && para.indexOf('：') < 30) {
                         // 冒号标题
                         const lines = Math.ceil(para.length * fontSize / (width - 100));
@@ -1374,6 +1662,10 @@
                             } else if (/^\d+[\.\、]/.test(overlapPara.trim())) {
                                 const lines = Math.ceil(overlapPara.length * fontSize / (width - 100));
                                 estimatedHeight += lines * lineHeightEstimate * 1.5;
+                            } else if (/^\s*[-•*⦿◉◆◇○●✓☑]/.test(overlapPara.trim())) {
+                                // 无序列表项
+                                const lines = Math.ceil(overlapPara.length * fontSize / (width - 100));
+                                estimatedHeight += lines * lineHeightEstimate * 1.2;
                             } else if (overlapPara.includes('：') && overlapPara.indexOf('：') < 30) {
                                 const lines = Math.ceil(overlapPara.length * fontSize / (width - 100));
                                 estimatedHeight += lines * lineHeightEstimate * 1.2;
@@ -1444,22 +1736,34 @@
                     // 清除画布
                     ctx.clearRect(0, 0, width, height);
                     
+                    // 获取主题样式
+                    const themeColor = getColorForTab(tabId);
+                    const bgColor = getBackgroundColor(tabId);
+                    const textColor = getTextColor(tabId);
+                    const titleBgStyle = getTitleBackgroundStyle(tabId);
+                    const titleTextColor = getTitleTextColor(tabId);
+                    
                     // 绘制背景
-                    ctx.fillStyle = '#ffffff';
+                    ctx.fillStyle = bgColor;
                     ctx.fillRect(0, 0, width, height);
                     
-                    // 获取主题色
-                    const themeColor = getColorForTab(tabId);
-                    
-                    // 顶部渐变 - 略微增加高度以容纳解释文本
-                    const gradient = ctx.createLinearGradient(0, 0, 0, height * 0.2);
-                    gradient.addColorStop(0, themeColor);  
-                    gradient.addColorStop(1, '#ffffff');
-                    ctx.fillStyle = gradient;
-                    ctx.fillRect(0, 0, width, height * 0.2);
+                    // 绘制标题背景
+                    if (titleBgStyle === 'gradient') {
+                        // 顶部渐变
+                        const gradientHeight = height * 0.2; // 恢复原始渐变高度
+                        const gradient = ctx.createLinearGradient(0, 0, 0, gradientHeight);
+                        gradient.addColorStop(0, themeColor);  
+                        gradient.addColorStop(1, bgColor);
+                        ctx.fillStyle = gradient;
+                        ctx.fillRect(0, 0, width, gradientHeight);
+                    } else {
+                        // 纯色标题背景
+                        ctx.fillStyle = themeColor;
+                        ctx.fillRect(0, 0, width, height * 0.15);
+                    }
                     
                     // 标题
-                    ctx.fillStyle = '#ffffff';
+                    ctx.fillStyle = titleTextColor;
                     ctx.font = 'bold 40px Arial, "Microsoft YaHei", "微软雅黑"';
                     const title = getTitle(tabId);
                     ctx.fillText(title, 50, 80);
@@ -1471,17 +1775,19 @@
                         ctx.fillText(`${pageNum}/${pages.length}`, width - 100, 80);
                     }
                     
-                    // 直接在标题下方添加解释文本，无背景
+                    // 直接在标题下方添加解释文本，不限制文本长度
                     if (explanation) {
                         // 不添加背景，直接在渐变区域写文字
-                        ctx.fillStyle = '#333333'; // 使用深色以确保在浅色渐变背景上清晰可见
+                        ctx.fillStyle = '#333333'; // 恢复为深色文本
                         ctx.font = `${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
+                        
+                        // 使用原始的文本包装函数
                         wrapText(ctx, explanation, 50, 120, width - 100, lineHeight);
                     }
                     
-                    // 渲染内容 - 向上移动以节省空间
+                    // 渲染内容 - 从渐变区域下方开始
                     const maxWidth = width - 100;
-                    let y = height * 0.2 + 20;
+                    let y = height * 0.2 + 20; // 恢复原始内容起始位置
                     
                     // 解释文本是否已渲染的标志
                     let hasExplanation = false;
@@ -1525,7 +1831,38 @@
                             ctx.fillStyle = '#333333';
                             ctx.font = `${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
                         } 
-                        // 3. 用户角度的心声部分 - 使用统一样式
+                        // 3. 无序列表项 (以 - 或 • 或 * 等符号开头)
+                        else if (/^\s*[-•*⦿◉◆◇○●✓☑]/.test(paragraph.trim())) {
+                            const trimmedPara = paragraph.trim();
+                            
+                            // 识别原始符号并替换成多样化的符号
+                            let bulletSymbol = '• ';
+                            const originalSymbols = ['-', '•', '*', '⦿', '◉', '◆', '◇', '○', '●', '✓', '☑'];
+                            const symbolIndex = originalSymbols.findIndex(s => trimmedPara.startsWith(s));
+                            
+                            // 如果找到原始符号，确定使用的符号
+                            if (symbolIndex >= 0) {
+                                // 使用找到的符号或在多样化符号中选择
+                                const diverseSymbols = ['• ', '◆ ', '○ ', '● ', '✓ ', '▶ ', '▪ ', '◉ '];
+                                bulletSymbol = diverseSymbols[symbolIndex % diverseSymbols.length];
+                            }
+                            
+                            const content = trimmedPara.replace(/^[-•*⦿◉◆◇○●✓☑]\s*/, '');
+                            
+                            // 使用主题色绘制符号
+                            ctx.fillStyle = themeColor;
+                            ctx.font = `bold ${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
+                            ctx.fillText(bulletSymbol, 50, y);
+                            
+                            const bulletWidth = ctx.measureText(bulletSymbol).width;
+                            
+                            // 绘制文本内容
+                            ctx.fillStyle = '#333333';
+                            ctx.font = `${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
+                            y = wrapText(ctx, content, 50 + bulletWidth, y, maxWidth - bulletWidth, lineHeight);
+                            y += lineHeight * 0.3;
+                        }
+                        // 4. 用户角度的心声部分 - 使用统一样式
                         else if (paragraph.trim().startsWith('用户角度的心声：')) {
                             // 分离冒号前后的部分
                             const colonIndex = paragraph.indexOf('：');
@@ -1556,7 +1893,7 @@
                             ctx.fillStyle = '#333333';
                             ctx.font = `${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
                         }
-                        // 4. 冒号标题 (如 "为什么会有这个需求：" 或 "针对这样的需求我们应该怎么做：")
+                        // 5. 冒号标题 (如 "为什么会有这个需求：" 或 "针对这样的需求我们应该怎么做：")
                         else if (paragraph.includes('：') && paragraph.indexOf('：') < 30) {
                             // 分离冒号前后的部分
                             const colonIndex = paragraph.indexOf('：');
@@ -1582,7 +1919,7 @@
                                 y += lineHeight;
                             }
                         }
-                        // 5. 普通段落
+                        // 6. 普通段落
                         else {
                             ctx.fillStyle = '#333333';
                             ctx.font = `${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
@@ -1694,8 +2031,8 @@ function generateLongImage(tabId) {
                 ctx.fillStyle = '#ffffff';
                 ctx.fillRect(0, 0, width, 8000);
                 
-                // 计算标题区域高度
-                const headerHeight = 240; // 标题+渐变+解释文本的高度
+                // 计算标题区域高度并增加
+                const headerHeight = 240; // 恢复原始标题区域高度
                 
                 // 绘制顶部渐变
                 const gradient = ctx.createLinearGradient(0, 0, 0, headerHeight);
@@ -1711,8 +2048,10 @@ function generateLongImage(tabId) {
                 
                 // 绘制解释文本
                 if (explanation) {
-                    ctx.fillStyle = '#333333';
+                    ctx.fillStyle = '#333333'; // 恢复为深色文本
                     ctx.font = `${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
+                    
+                    // 使用原始的文本包装函数
                     wrapText(ctx, explanation, 50, 120, width - 100, lineHeight);
                 }
                 
@@ -1956,14 +2295,21 @@ function exportAllLongImages() {
         ctx.fillRect(0, 0, width, 8000);
         
         // 计算标题区域高度
-        const headerHeight = 240;
+        const headerHeight = 240; // 恢复原始标题区域高度
         
-        // 绘制顶部渐变
-        const gradient = ctx.createLinearGradient(0, 0, 0, headerHeight);
-        gradient.addColorStop(0, themeColor);  
-        gradient.addColorStop(0.5, '#ffffff');
-        ctx.fillStyle = gradient;
-        ctx.fillRect(0, 0, width, headerHeight);
+        // 绘制标题背景
+        if (titleBgStyle === 'gradient') {
+            // 渐变背景
+            const gradient = ctx.createLinearGradient(0, 0, 0, headerHeight);
+            gradient.addColorStop(0, themeColor);  
+            gradient.addColorStop(0.5, bgColor);
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, width, headerHeight);
+        } else {
+            // 纯色标题背景 - 增加高度
+            ctx.fillStyle = themeColor;
+            ctx.fillRect(0, 0, width, headerHeight * 0.7);
+        }
         
         // 绘制标题
         ctx.fillStyle = '#ffffff';
@@ -1972,8 +2318,10 @@ function exportAllLongImages() {
         
         // 绘制解释文本
         if (explanation) {
-            ctx.fillStyle = '#333333';
+            ctx.fillStyle = '#333333'; // 恢复为深色文本
             ctx.font = `${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
+            
+            // 使用原始的文本包装函数
             wrapText(ctx, explanation, 50, 120, width - 100, lineHeight);
         }
         
@@ -2004,7 +2352,7 @@ function exportAllLongImages() {
             else if (paragraph.trim().startsWith('用户角度的心声：')) {
                 // 分离冒号前后的部分
                 const colonIndex = paragraph.indexOf('：');
-                const beforeColon = paragraph.substring(0, colonIndex + 1);
+                const beforeColon = paragraph.substring(0, colonIndex + 1); // 包括冒号
                 const afterColon = paragraph.substring(colonIndex + 1);
                 
                 // 冒号前的部分使用普通加粗样式
@@ -2035,7 +2383,7 @@ function exportAllLongImages() {
             else if (paragraph.includes('：') && paragraph.indexOf('：') < 30) {
                 // 分离冒号前后的部分
                 const colonIndex = paragraph.indexOf('：');
-                const beforeColon = paragraph.substring(0, colonIndex + 1);
+                const beforeColon = paragraph.substring(0, colonIndex + 1); // 包括冒号
                 const afterColon = paragraph.substring(colonIndex + 1);
                 
                 // 冒号前的部分加粗显示
@@ -2303,6 +2651,241 @@ function exportAllShortImages() {
             } catch (error) {
                 console.error('初始化时出错:', error);
             }
+        });
+
+        // 初始化页面后为所有模块添加风格选择器
+        function initThemeSelectors() {
+            // 获取所有模块ID
+            const moduleIds = [
+                'user-needs', 
+                'high-pay', 
+                'search-intent', 
+                'pre-needs', 
+                'low-competition',
+                'selling-points', 
+                'diff-service',
+                'trust-words',
+                'user-thoughts', 
+                'content-ideas', 
+                'project-analysis'
+            ];
+            
+            // 为每个模块添加风格选择器(如果尚未添加)
+            moduleIds.forEach(id => {
+                const settingsGroup = document.querySelector(`#${id} .settings-group`);
+                if (settingsGroup && !document.getElementById(`${id}-theme`)) {
+                    // 创建风格选择器容器
+                    const settingsItem = document.createElement('div');
+                    settingsItem.className = 'settings-item';
+                    
+                    // 创建标签
+                    const label = document.createElement('label');
+                    label.setAttribute('for', `${id}-theme`);
+                    label.textContent = '风格:';
+                    
+                    // 创建选择器
+                    const select = document.createElement('select');
+                    select.id = `${id}-theme`;
+                    
+                    // 添加选项
+                    const options = [
+                        { value: 'default', text: '默认风格' },
+                        { value: 'vibrant', text: '活力多彩' },
+                        { value: 'warm', text: '温暖橙棕' },
+                        { value: 'fresh', text: '清新自然' },
+                        { value: 'tropical', text: '热带风情' }
+                    ];
+                    
+                    options.forEach(option => {
+                        const optionElement = document.createElement('option');
+                        optionElement.value = option.value;
+                        optionElement.textContent = option.text;
+                        select.appendChild(optionElement);
+                    });
+                    
+                    // 组装并添加到页面
+                    settingsItem.appendChild(label);
+                    settingsItem.appendChild(select);
+                    settingsGroup.appendChild(settingsItem);
+                }
+            });
+        }
+        
+        // 页面加载完成后执行初始化
+        document.addEventListener('DOMContentLoaded', initThemeSelectors);
+
+        // 设置全局顶部菜单的导出按钮颜色
+        function updateExportButtonColors() {
+            // 获取所有可用的主题风格的名称
+            const availableThemes = Object.keys(themeStyles);
+            
+            // 如果没有可用的主题，则返回
+            if (availableThemes.length === 0) return;
+            
+            // 随机选择一个主题风格
+            const randomTheme = availableThemes[Math.floor(Math.random() * availableThemes.length)];
+            const themeStyle = themeStyles[randomTheme];
+            
+            // 查找并更新导出按钮的颜色
+            const exportButtons = document.querySelectorAll('.export-all-button');
+            
+            if (exportButtons.length >= 2) {
+                // 第一个按钮使用第一个模块的颜色
+                if (themeStyle && themeStyle.primary && themeStyle.primary['user-needs']) {
+                    exportButtons[0].style.backgroundColor = themeStyle.primary['user-needs'];
+                }
+                
+                // 第二个按钮使用第二个模块的颜色
+                if (themeStyle && themeStyle.primary && themeStyle.primary['high-pay']) {
+                    exportButtons[1].style.backgroundColor = themeStyle.primary['high-pay'];
+                }
+            }
+        }
+        
+        // 在页面加载完成后执行初始化主题选择器和按钮颜色
+        document.addEventListener('DOMContentLoaded', function() {
+            initThemeSelectors();
+            setTimeout(updateExportButtonColors, 500); // 稍微延迟，确保DOM已完全加载
+        });
+
+        // 应用全局主题
+        function applyGlobalTheme() {
+            const globalThemeSelect = document.getElementById('global-theme');
+            const selectedTheme = globalThemeSelect.value;
+            
+            if (!selectedTheme) return; // 如果是空值，不执行任何操作
+            
+            // 获取所有模块ID
+            const moduleIds = [
+                'user-needs', 
+                'high-pay', 
+                'search-intent', 
+                'pre-needs', 
+                'low-competition',
+                'selling-points', 
+                'diff-service',
+                'trust-words',
+                'user-thoughts', 
+                'content-ideas', 
+                'project-analysis'
+            ];
+            
+            // 为每个模块设置相同的主题
+            moduleIds.forEach(id => {
+                const themeSelect = document.getElementById(`${id}-theme`);
+                if (themeSelect) {
+                    themeSelect.value = selectedTheme;
+                }
+            });
+            
+            // 更新导出按钮颜色
+            if (themeStyles[selectedTheme] && themeStyles[selectedTheme].primary) {
+                const buttons = document.querySelectorAll('.export-all-button');
+                
+                if (buttons.length >= 2) {
+                    // 设置第一个按钮颜色
+                    const color1 = themeStyles[selectedTheme].primary['user-needs'] || '#4a6cf7';
+                    buttons[0].style.backgroundColor = color1;
+                    
+                    // 设置第二个按钮颜色
+                    const color2 = themeStyles[selectedTheme].primary['high-pay'] || '#2c3e50';
+                    buttons[1].style.backgroundColor = color2;
+                }
+            }
+            
+            // 显示应用成功提示
+            const progressIndicator = document.getElementById('progress-indicator');
+            progressIndicator.style.display = 'block';
+            progressIndicator.textContent = `已将全局风格更改为: ${globalThemeSelect.options[globalThemeSelect.selectedIndex].text}`;
+            
+            // 3秒后隐藏提示
+            setTimeout(() => {
+                progressIndicator.style.display = 'none';
+            }, 3000);
+        }
+        
+        // 显示主题预览面板
+        function showThemePreview() {
+            const globalThemeSelect = document.getElementById('global-theme');
+            const selectedTheme = globalThemeSelect.value || 'default';
+            const themeName = globalThemeSelect.options[globalThemeSelect.selectedIndex].text || '默认风格';
+            
+            // 获取主题样式
+            const themeStyle = themeStyles[selectedTheme];
+            if (!themeStyle) return;
+            
+            // 更新预览面板标题
+            document.getElementById('preview-theme-name').textContent = `${themeName} 预览`;
+            
+            // 更新预览面板标题背景色
+            const previewHeader = document.querySelector('.theme-preview-header');
+            previewHeader.style.background = themeStyle.primary ? (themeStyle.primary['user-needs'] || '#4a6cf7') : '#4a6cf7';
+            
+            // 更新预览面板示例容器背景色
+            const previewContainer = document.getElementById('preview-sample-container');
+            previewContainer.style.background = themeStyle.background || '#ffffff';
+            
+            // 更新示例标题颜色
+            const previewSampleHeader = document.getElementById('preview-sample-header');
+            previewSampleHeader.style.color = themeStyle.primary ? (themeStyle.primary['user-needs'] || '#4a6cf7') : '#4a6cf7';
+            previewSampleHeader.style.borderColor = themeStyle.primary ? (themeStyle.primary['user-needs'] || '#4a6cf7') : '#4a6cf7';
+            
+            // 更新示例文本颜色
+            const previewSampleText = document.getElementById('preview-sample-text');
+            previewSampleText.style.color = themeStyle.text || '#333333';
+            
+            // 显示预览面板
+            document.getElementById('theme-preview-panel').style.display = 'block';
+        }
+        
+        // 隐藏主题预览面板
+        function hideThemePreview() {
+            document.getElementById('theme-preview-panel').style.display = 'none';
+        }
+        
+        // 应用预览中的主题
+        function applyPreviewTheme() {
+            const globalThemeSelect = document.getElementById('global-theme');
+            if (globalThemeSelect.value) {
+                applyGlobalTheme();
+            }
+            hideThemePreview();
+        }
+        
+        // 为主题选择器添加颜色预览
+        function enhanceThemeSelectors() {
+            // 获取所有主题选择器
+            const allThemeSelectors = document.querySelectorAll('select[id$="-theme"]');
+            
+            allThemeSelectors.forEach(selector => {
+                // 获取所有选项
+                const options = selector.querySelectorAll('option');
+                
+                // 为每个选项添加颜色预览
+                options.forEach(option => {
+                    const themeName = option.value;
+                    if (!themeName || !themeStyles[themeName]) return;
+                    
+                    // 获取该主题的主色
+                    let previewColor = '#4a6cf7';
+                    if (themeStyles[themeName].primary) {
+                        const moduleId = selector.id.replace('-theme', '');
+                        previewColor = themeStyles[themeName].primary[moduleId] || Object.values(themeStyles[themeName].primary)[0] || '#4a6cf7';
+                    }
+                    
+                    // 创建颜色预览
+                    option.innerHTML = `<div class="theme-option"><span class="theme-preview" style="background-color: ${previewColor}"></span>${option.textContent}</div>`;
+                });
+            });
+        }
+        
+        // 在页面加载完成后执行初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            initThemeSelectors();
+            setTimeout(() => {
+                updateExportButtonColors();
+                enhanceThemeSelectors();
+            }, 500);
         });
     </script>
 </body>
