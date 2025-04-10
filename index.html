@@ -2055,7 +2055,7 @@ function generateLongImage(tabId) {
         setTimeout(() => {
             try {
                 // 创建临时画布用于测量和绘制
-                const canvas = document.getElementById('image-canvas');
+                const canvas = document.createElement('canvas');
                 const width = 900;
                 
                 // 设置临时画布大小 - 先设一个足够大的尺寸
@@ -2072,6 +2072,10 @@ function generateLongImage(tabId) {
                 const explanation = getExplanation(tabId);
                 const themeColor = getColorForTab(tabId);
                 const title = getTitle(tabId);
+                
+                // 获取背景颜色和标题背景样式
+                const bgColor = getBackgroundColor(tabId);
+                const titleBgStyle = getTitleBackgroundStyle(tabId);
                 
                 // 准备段落
                 const paragraphs = cleanedText.split('\n');
@@ -2127,7 +2131,33 @@ function generateLongImage(tabId) {
                         ctx.fillStyle = '#333333';
                         ctx.font = `${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
                     } 
-                    // 2. 用户角度的心声部分
+                    // 2. 无序列表项 (以 - 或 • 或 * 等符号开头)
+                    else if (/^\s*[-•*⦿◉◆◇○●✓☑]/.test(paragraph.trim())) {
+                        const trimmedPara = paragraph.trim();
+                        
+                        // 使用全局定义的列表符号
+                        let bulletSymbol = getBulletSymbol() + ' ';
+                        const content = trimmedPara.replace(/^[-•*⦿◉◆◇○●✓☑]\s*/, '');
+                        
+                        // 使用主题色绘制符号，如果该符号可着色
+                        if (isBulletColorful()) {
+                            ctx.fillStyle = themeColor;
+                        } else {
+                            ctx.fillStyle = '#333333'; // 对于表情符号使用黑色
+                        }
+                        
+                        ctx.font = `bold ${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
+                        ctx.fillText(bulletSymbol, 50, y);
+                        
+                        const bulletWidth = ctx.measureText(bulletSymbol).width;
+                        
+                        // 绘制文本内容
+                        ctx.fillStyle = '#333333';
+                        ctx.font = `${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
+                        y = wrapText(ctx, content, 50 + bulletWidth, y, maxWidth - bulletWidth, lineHeight);
+                        y += lineHeight * 0.3;
+                    }
+                    // 3. 用户角度的心声部分
                     else if (paragraph.trim().startsWith('用户角度的心声：')) {
                         // 分离冒号前后的部分
                         const colonIndex = paragraph.indexOf('：');
@@ -2158,7 +2188,7 @@ function generateLongImage(tabId) {
                         ctx.fillStyle = '#333333';
                         ctx.font = `${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
                     }
-                    // 3. 冒号标题
+                    // 4. 冒号标题
                     else if (paragraph.includes('：') && paragraph.indexOf('：') < 30) {
                         // 分离冒号前后的部分
                         const colonIndex = paragraph.indexOf('：');
@@ -2184,7 +2214,7 @@ function generateLongImage(tabId) {
                             y += lineHeight;
                         }
                     }
-                    // 4. 普通段落
+                    // 5. 普通段落
                     else {
                         ctx.fillStyle = '#333333';
                         ctx.font = `${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
@@ -2301,6 +2331,10 @@ function exportAllLongImages() {
                 link.click();
                 
                 progressIndicator.style.display = 'none';
+            }).catch(function(error) {
+                console.error('生成ZIP出错:', error);
+                progressIndicator.style.display = 'none';
+                alert('生成ZIP包时出错: ' + error.message);
             });
             
             return;
@@ -2335,6 +2369,10 @@ function exportAllLongImages() {
         const explanation = getExplanation(tabId);
         const themeColor = getColorForTab(tabId);
         const title = getTitle(tabId);
+        
+        // 获取背景颜色和标题背景样式
+        const bgColor = getBackgroundColor(tabId);
+        const titleBgStyle = getTitleBackgroundStyle(tabId);
         
         // 准备段落
         const paragraphs = cleanedText.split('\n');
@@ -2397,7 +2435,33 @@ function exportAllLongImages() {
                 ctx.fillStyle = '#333333';
                 ctx.font = `${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
             } 
-            // 2. 用户角度的心声部分
+            // 2. 无序列表项 (以 - 或 • 或 * 等符号开头)
+            else if (/^\s*[-•*⦿◉◆◇○●✓☑]/.test(paragraph.trim())) {
+                const trimmedPara = paragraph.trim();
+                
+                // 使用全局定义的列表符号
+                let bulletSymbol = getBulletSymbol() + ' ';
+                const content = trimmedPara.replace(/^[-•*⦿◉◆◇○●✓☑]\s*/, '');
+                
+                // 使用主题色绘制符号，如果该符号可着色
+                if (isBulletColorful()) {
+                    ctx.fillStyle = themeColor;
+                } else {
+                    ctx.fillStyle = '#333333'; // 对于表情符号使用黑色
+                }
+                
+                ctx.font = `bold ${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
+                ctx.fillText(bulletSymbol, 50, y);
+                
+                const bulletWidth = ctx.measureText(bulletSymbol).width;
+                
+                // 绘制文本内容
+                ctx.fillStyle = '#333333';
+                ctx.font = `${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
+                y = wrapText(ctx, content, 50 + bulletWidth, y, maxWidth - bulletWidth, lineHeight);
+                y += lineHeight * 0.3;
+            }
+            // 3. 用户角度的心声部分
             else if (paragraph.trim().startsWith('用户角度的心声：')) {
                 // 分离冒号前后的部分
                 const colonIndex = paragraph.indexOf('：');
@@ -2506,6 +2570,8 @@ function exportAllShortImages() {
         'pre-needs', 
         'low-competition',
         'selling-points', 
+        'diff-service',
+        'trust-words',
         'user-thoughts', 
         'content-ideas', 
         'project-analysis'
