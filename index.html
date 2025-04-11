@@ -591,6 +591,17 @@
                     导出所有模块短图
                 </button>
                 
+                <button class="export-all-button" style="margin-left: 10px; background-color: #ff4757;" onclick="clearAllContent()">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 6h18"></path>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path>
+                        <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                        <line x1="10" y1="11" x2="10" y2="17"></line>
+                        <line x1="14" y1="11" x2="14" y2="17"></line>
+                    </svg>
+                    重置所有模块内容
+                </button>
+                
                 <!-- 添加全局风格选择 -->
                 <div class="global-theme-selector" style="margin-top: 15px; text-align: center;">
                     <label for="global-theme" style="color: #666; margin-right: 10px;">全局风格设置:</label>
@@ -601,6 +612,17 @@
                         <option value="warm">温暖橙棕</option>
                         <option value="fresh">清新自然</option>
                         <option value="tropical">热带风情</option>
+                        <option value="business">商务专业</option>
+                        <option value="education">教育培训</option>
+                        <option value="technology">科技数码</option>
+                        <option value="healthcare">医疗健康</option>
+                        <option value="finance">金融财经</option>
+                        <option value="retail">零售商业</option>
+                        <option value="travel">旅游出行</option>
+                        <option value="food">餐饮美食</option>
+                        <option value="luxury">轻奢高端</option>
+                        <option value="creative">创意设计</option>
+                        <option value="festival">节日喜庆</option>
                     </select>
                     <button id="preview-theme-button" style="margin-left: 10px; padding: 5px 10px; background: #f0f0f0; border: 1px solid #ddd; border-radius: 4px; cursor: pointer;" onclick="showThemePreview()">预览风格</button>
                 </div>
@@ -992,6 +1014,17 @@
                                     <option value="warm">温暖橙棕</option>
                                     <option value="fresh">清新自然</option>
                                     <option value="tropical">热带风情</option>
+                                    <option value="business">商务专业</option>
+                                    <option value="education">教育培训</option>
+                                    <option value="technology">科技数码</option>
+                                    <option value="healthcare">医疗健康</option>
+                                    <option value="finance">金融财经</option>
+                                    <option value="retail">零售商业</option>
+                                    <option value="travel">旅游出行</option>
+                                    <option value="food">餐饮美食</option>
+                                    <option value="luxury">轻奢高端</option>
+                                    <option value="creative">创意设计</option>
+                                    <option value="festival">节日喜庆</option>
                                 </select>
                             </div>
                         </div>
@@ -1244,6 +1277,215 @@
                 },
                 background: '#FFFDE7',
                 text: '#3E2723',
+                titleBackground: 'gradient',
+                titleText: '#ffffff'
+            },
+            'business': {
+                primary: {
+                    'user-needs': '#FF9800',
+                    'high-pay': '#FF7043',
+                    'search-intent': '#FFB74D',
+                    'pre-needs': '#FFA726',
+                    'low-competition': '#FB8C00',
+                    'selling-points': '#F57C00',
+                    'diff-service': '#EF6C00',
+                    'trust-words': '#E65100',
+                    'user-thoughts': '#D84315',
+                    'content-ideas': '#BF360C',
+                    'project-analysis': '#FF5722'
+                },
+                background: '#FFF8E1',
+                text: '#5D4037',
+                titleBackground: 'gradient',
+                titleText: '#ffffff'
+            },
+            'education': {
+                primary: {
+                    'user-needs': '#8BC34A',
+                    'high-pay': '#FF7043',
+                    'search-intent': '#FFB74D',
+                    'pre-needs': '#FFA726',
+                    'low-competition': '#FB8C00',
+                    'selling-points': '#F57C00',
+                    'diff-service': '#EF6C00',
+                    'trust-words': '#E65100',
+                    'user-thoughts': '#D84315',
+                    'content-ideas': '#BF360C',
+                    'project-analysis': '#FF5722'
+                },
+                background: '#F1F8E9',
+                text: '#33691E',
+                titleBackground: 'gradient',
+                titleText: '#ffffff'
+            },
+            'technology': {
+                primary: {
+                    'user-needs': '#2196F3',
+                    'high-pay': '#FF7043',
+                    'search-intent': '#FFB74D',
+                    'pre-needs': '#FFA726',
+                    'low-competition': '#FB8C00',
+                    'selling-points': '#F57C00',
+                    'diff-service': '#EF6C00',
+                    'trust-words': '#E65100',
+                    'user-thoughts': '#D84315',
+                    'content-ideas': '#BF360C',
+                    'project-analysis': '#FF5722'
+                },
+                background: '#E8F5E9',
+                text: '#33691E',
+                titleBackground: 'gradient',
+                titleText: '#ffffff'
+            },
+            'healthcare': {
+                primary: {
+                    'user-needs': '#58b19f',
+                    'high-pay': '#FF7043',
+                    'search-intent': '#FFB74D',
+                    'pre-needs': '#FFA726',
+                    'low-competition': '#FB8C00',
+                    'selling-points': '#F57C00',
+                    'diff-service': '#EF6C00',
+                    'trust-words': '#E65100',
+                    'user-thoughts': '#D84315',
+                    'content-ideas': '#BF360C',
+                    'project-analysis': '#FF5722'
+                },
+                background: '#E8F5E9',
+                text: '#33691E',
+                titleBackground: 'gradient',
+                titleText: '#ffffff'
+            },
+            'finance': {
+                primary: {
+                    'user-needs': '#ffc107',
+                    'high-pay': '#FF7043',
+                    'search-intent': '#FFB74D',
+                    'pre-needs': '#FFA726',
+                    'low-competition': '#FB8C00',
+                    'selling-points': '#F57C00',
+                    'diff-service': '#EF6C00',
+                    'trust-words': '#E65100',
+                    'user-thoughts': '#D84315',
+                    'content-ideas': '#BF360C',
+                    'project-analysis': '#FF5722'
+                },
+                background: '#FFF8E1',
+                text: '#5D4037',
+                titleBackground: 'gradient',
+                titleText: '#ffffff'
+            },
+            'retail': {
+                primary: {
+                    'user-needs': '#ff6b6b',
+                    'high-pay': '#FF7043',
+                    'search-intent': '#FFB74D',
+                    'pre-needs': '#FFA726',
+                    'low-competition': '#FB8C00',
+                    'selling-points': '#F57C00',
+                    'diff-service': '#EF6C00',
+                    'trust-words': '#E65100',
+                    'user-thoughts': '#D84315',
+                    'content-ideas': '#BF360C',
+                    'project-analysis': '#FF5722'
+                },
+                background: '#FFF8E1',
+                text: '#5D4037',
+                titleBackground: 'gradient',
+                titleText: '#ffffff'
+            },
+            'travel': {
+                primary: {
+                    'user-needs': '#ffbb33',
+                    'high-pay': '#FF7043',
+                    'search-intent': '#FFB74D',
+                    'pre-needs': '#FFA726',
+                    'low-competition': '#FB8C00',
+                    'selling-points': '#F57C00',
+                    'diff-service': '#EF6C00',
+                    'trust-words': '#E65100',
+                    'user-thoughts': '#D84315',
+                    'content-ideas': '#BF360C',
+                    'project-analysis': '#FF5722'
+                },
+                background: '#FFF8E1',
+                text: '#5D4037',
+                titleBackground: 'gradient',
+                titleText: '#ffffff'
+            },
+            'food': {
+                primary: {
+                    'user-needs': '#ff9800',
+                    'high-pay': '#FF7043',
+                    'search-intent': '#FFB74D',
+                    'pre-needs': '#FFA726',
+                    'low-competition': '#FB8C00',
+                    'selling-points': '#F57C00',
+                    'diff-service': '#EF6C00',
+                    'trust-words': '#E65100',
+                    'user-thoughts': '#D84315',
+                    'content-ideas': '#BF360C',
+                    'project-analysis': '#FF5722'
+                },
+                background: '#FFF8E1',
+                text: '#5D4037',
+                titleBackground: 'gradient',
+                titleText: '#ffffff'
+            },
+            'luxury': {
+                primary: {
+                    'user-needs': '#6c5ce7',
+                    'high-pay': '#FF7043',
+                    'search-intent': '#FFB74D',
+                    'pre-needs': '#FFA726',
+                    'low-competition': '#FB8C00',
+                    'selling-points': '#F57C00',
+                    'diff-service': '#EF6C00',
+                    'trust-words': '#E65100',
+                    'user-thoughts': '#D84315',
+                    'content-ideas': '#BF360C',
+                    'project-analysis': '#FF5722'
+                },
+                background: '#FFF8E1',
+                text: '#5D4037',
+                titleBackground: 'gradient',
+                titleText: '#ffffff'
+            },
+            'creative': {
+                primary: {
+                    'user-needs': '#9c88ff',
+                    'high-pay': '#FF7043',
+                    'search-intent': '#FFB74D',
+                    'pre-needs': '#FFA726',
+                    'low-competition': '#FB8C00',
+                    'selling-points': '#F57C00',
+                    'diff-service': '#EF6C00',
+                    'trust-words': '#E65100',
+                    'user-thoughts': '#D84315',
+                    'content-ideas': '#BF360C',
+                    'project-analysis': '#FF5722'
+                },
+                background: '#FFF8E1',
+                text: '#5D4037',
+                titleBackground: 'gradient',
+                titleText: '#ffffff'
+            },
+            'festival': {
+                primary: {
+                    'user-needs': '#e74c3c',
+                    'high-pay': '#FF7043',
+                    'search-intent': '#FFB74D',
+                    'pre-needs': '#FFA726',
+                    'low-competition': '#FB8C00',
+                    'selling-points': '#F57C00',
+                    'diff-service': '#EF6C00',
+                    'trust-words': '#E65100',
+                    'user-thoughts': '#D84315',
+                    'content-ideas': '#BF360C',
+                    'project-analysis': '#FF5722'
+                },
+                background: '#FFF8E1',
+                text: '#5D4037',
                 titleBackground: 'gradient',
                 titleText: '#ffffff'
             }
@@ -2808,7 +3050,18 @@ function exportAllShortImages() {
                         { value: 'vibrant', text: '活力多彩' },
                         { value: 'warm', text: '温暖橙棕' },
                         { value: 'fresh', text: '清新自然' },
-                        { value: 'tropical', text: '热带风情' }
+                        { value: 'tropical', text: '热带风情' },
+                        { value: 'business', text: '商务专业' },
+                        { value: 'education', text: '教育培训' },
+                        { value: 'technology', text: '科技数码' },
+                        { value: 'healthcare', text: '医疗健康' },
+                        { value: 'finance', text: '金融财经' },
+                        { value: 'retail', text: '零售商业' },
+                        { value: 'travel', text: '旅游出行' },
+                        { value: 'food', text: '餐饮美食' },
+                        { value: 'luxury', text: '轻奢高端' },
+                        { value: 'creative', text: '创意设计' },
+                        { value: 'festival', text: '节日喜庆' }
                     ];
                     
                     options.forEach(option => {
@@ -3005,7 +3258,7 @@ function exportAllShortImages() {
 
         // 列表符号样式集合
         const bulletStyles = [
-            // 几何形状
+            // 基础几何形状
             { id: 'circle', symbol: '●', colorful: true },
             { id: 'square', symbol: '■', colorful: true },
             { id: 'diamond', symbol: '◆', colorful: true },
@@ -3013,17 +3266,84 @@ function exportAllShortImages() {
             { id: 'hollow-circle', symbol: '○', colorful: true },
             { id: 'hollow-square', symbol: '□', colorful: true },
             { id: 'hollow-diamond', symbol: '◇', colorful: true },
-            // 表情符号
+            // 基础符号
             { id: 'star', symbol: '★', colorful: true },
             { id: 'heart', symbol: '❤', colorful: true },
             { id: 'flower', symbol: '✿', colorful: true },
             { id: 'arrow', symbol: '➤', colorful: true },
-            // 表情包
             { id: 'check', symbol: '✓', colorful: true },
-            { id: 'smiley', symbol: '😊', colorful: false },
-            { id: 'thumbs-up', symbol: '👍', colorful: false },
-            { id: 'fire', symbol: '🔥', colorful: false },
-            { id: 'bulb', symbol: '💡', colorful: false }
+            
+            // 科技数码行业
+            { id: 'tech-laptop', symbol: '💻', colorful: false },
+            { id: 'tech-smartphone', symbol: '📱', colorful: false },
+            { id: 'tech-cloud', symbol: '☁️', colorful: false },
+            { id: 'tech-gear', symbol: '⚙️', colorful: false },
+            
+            // 教育培训行业
+            { id: 'edu-book', symbol: '📚', colorful: false },
+            { id: 'edu-pencil', symbol: '✏️', colorful: false },
+            { id: 'edu-graduate', symbol: '🎓', colorful: false },
+            { id: 'edu-lightbulb', symbol: '💡', colorful: false },
+            
+            // 医疗健康行业
+            { id: 'health-heart', symbol: '❤️', colorful: false },
+            { id: 'health-pill', symbol: '💊', colorful: false },
+            { id: 'health-hospital', symbol: '🏥', colorful: false },
+            { id: 'health-apple', symbol: '🍎', colorful: false },
+            
+            // 金融财经行业
+            { id: 'finance-dollar', symbol: '💵', colorful: false },
+            { id: 'finance-chart', symbol: '📈', colorful: false },
+            { id: 'finance-bank', symbol: '🏦', colorful: false },
+            { id: 'finance-coin', symbol: '🪙', colorful: false },
+            
+            // 零售商业行业
+            { id: 'retail-shop', symbol: '🛒', colorful: false },
+            { id: 'retail-bag', symbol: '👜', colorful: false },
+            { id: 'retail-tag', symbol: '🏷️', colorful: false },
+            { id: 'retail-gift', symbol: '🎁', colorful: false },
+            
+            // 旅游出行行业
+            { id: 'travel-plane', symbol: '✈️', colorful: false },
+            { id: 'travel-hotel', symbol: '🏨', colorful: false },
+            { id: 'travel-beach', symbol: '🏖️', colorful: false },
+            { id: 'travel-map', symbol: '🗺️', colorful: false },
+            
+            // 餐饮美食行业
+            { id: 'food-restaurant', symbol: '🍽️', colorful: false },
+            { id: 'food-coffee', symbol: '☕', colorful: false },
+            { id: 'food-cake', symbol: '🍰', colorful: false },
+            { id: 'food-cooking', symbol: '👨‍🍳', colorful: false },
+            
+            // 房地产建筑行业
+            { id: 'realestate-house', symbol: '🏠', colorful: false },
+            { id: 'realestate-building', symbol: '🏢', colorful: false },
+            { id: 'realestate-key', symbol: '🔑', colorful: false },
+            { id: 'realestate-ruler', symbol: '📏', colorful: false },
+            
+            // 美妆时尚行业
+            { id: 'fashion-clothes', symbol: '👗', colorful: false },
+            { id: 'fashion-lipstick', symbol: '💄', colorful: false },
+            { id: 'fashion-bag', symbol: '👜', colorful: false },
+            { id: 'fashion-watch', symbol: '⌚', colorful: false },
+            
+            // 体育健身行业
+            { id: 'sport-ball', symbol: '⚽', colorful: false },
+            { id: 'sport-medal', symbol: '🏅', colorful: false },
+            { id: 'sport-trophy', symbol: '🏆', colorful: false },
+            { id: 'sport-gym', symbol: '💪', colorful: false },
+            
+            // 媒体娱乐行业
+            { id: 'media-camera', symbol: '📷', colorful: false },
+            { id: 'media-movie', symbol: '🎬', colorful: false },
+            { id: 'media-music', symbol: '🎵', colorful: false },
+            { id: 'media-microphone', symbol: '🎤', colorful: false },
+            
+            // 农业园艺行业
+            { id: 'agriculture-plant', symbol: '🌱', colorful: false },
+            { id: 'agriculture-tractor', symbol: '🚜', colorful: false },
+            { id: 'agriculture-fruit', symbol: '🍇', colorful: false },
+            { id: 'agriculture-farm', symbol: '🌾', colorful: false },
         ];
         
         // 当前选择的列表符号样式
@@ -3138,6 +3458,35 @@ function exportAllShortImages() {
                 // 普通段落
                 const lines = Math.ceil(estimateTextWidth(paragraph, fontSize) / maxWidth);
                 return lines * lineHeight;
+            }
+        }
+    </script>
+    
+    <script>
+        // 清空所有模块内容
+        function clearAllContent() {
+            // 获取所有模块ID
+            const moduleIds = [
+                'user-needs', 
+                'high-pay', 
+                'search-intent', 
+                'pre-needs', 
+                'low-competition',
+                'selling-points', 
+                'diff-service',
+                'trust-words',
+                'user-thoughts', 
+                'content-ideas', 
+                'project-analysis'
+            ];
+            
+            // 确认对话框
+            if (confirm('确定要清空所有模块的内容吗？此操作不可恢复！')) {
+                // 遍历所有模块并清空内容
+                moduleIds.forEach(tabId => {
+                    clearEditor(tabId);
+                });
+                alert('已清空所有模块内容！');
             }
         }
     </script>
