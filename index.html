@@ -650,6 +650,7 @@
                 <button class="tab" data-tab="user-thoughts">用户心理分析</button>
                 <button class="tab" data-tab="content-ideas">引流笔记思路</button>
                 <button class="tab" data-tab="project-analysis">项目分析介绍</button>
+                <button class="tab" data-tab="promotion-tips">宣传建议分析</button>
             </div>
 
             <!-- 用户需求分析 -->
@@ -1123,6 +1124,47 @@
                     </div>
                 </div>
             </div>
+
+            <!-- 宣传建议分析 -->
+            <div class="tab-content" id="promotion-tips">
+                <div class="analysis-container">
+                    <h2>宣传建议分析</h2>
+                    <div class="explanation">
+                        这个工具是帮我们去生成各种宣传的建议，能够更好的吸引客户并转化客户。
+                    </div>
+                    <div class="settings-panel">
+                        <h3>图像设置</h3>
+                        <div class="settings-group">
+                            <div class="settings-item">
+                                <label for="font-size">字体大小:</label>
+                                <select id="promotion-tips-font-size">
+                                    <option value="20">小</option>
+                                    <option value="22" selected>中</option>
+                                    <option value="24">大</option>
+                                </select>
+                            </div>
+                            <div class="settings-item">
+                                <label for="line-height">行高:</label>
+                                <select id="promotion-tips-line-height">
+                                    <option value="30">紧凑</option>
+                                    <option value="34" selected>标准</option>
+                                    <option value="38">宽松</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <textarea class="editor" id="promotion-tips-editor" placeholder="粘贴AI生成的宣传建议分析内容..."></textarea>
+                    <div class="button-group">
+                        <button class="button" onclick="generateImage('promotion-tips')">预览3:4短图</button>
+                        <button class="button secondary" onclick="generateLongImage('promotion-tips')">预览长图</button>
+                        <button class="button secondary" onclick="clearEditor('promotion-tips')">清空内容</button>
+                    </div>
+                    <div class="preview-area" id="promotion-tips-preview">
+                        <h3>预览</h3>
+                        <img id="promotion-tips-image" alt="预览图">
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div id="canvas-container">
@@ -1192,7 +1234,8 @@
             'trust-words': '#27ae60',   // 深绿色
             'user-thoughts': '#3498db',  // 天蓝色
             'content-ideas': '#9b59b6',  // 紫红色
-            'project-analysis': '#1abc9c' // 青绿色
+            'project-analysis': '#1abc9c', // 青绿色
+            'promotion-tips': '#e67e22'  // 橙褐色
         };
         
         // 主题样式映射
@@ -1216,7 +1259,8 @@
                     'trust-words': '#E91E63',
                     'user-thoughts': '#F44336',
                     'content-ideas': '#CDDC39',
-                    'project-analysis': '#009688'
+                    'project-analysis': '#009688',
+                    'promotion-tips': '#FF5722'
                 },
                 background: '#ffffff',
                 text: '#424242',
@@ -1235,7 +1279,8 @@
                     'trust-words': '#E65100',
                     'user-thoughts': '#D84315',
                     'content-ideas': '#BF360C',
-                    'project-analysis': '#FF5722'
+                    'project-analysis': '#FF5722',
+                    'promotion-tips': '#FF9800'
                 },
                 background: '#FFF8E1',
                 text: '#5D4037',
@@ -1254,7 +1299,8 @@
                     'trust-words': '#00796B',
                     'user-thoughts': '#43A047',
                     'content-ideas': '#7CB342',
-                    'project-analysis': '#26A69A'
+                    'project-analysis': '#26A69A',
+                    'promotion-tips': '#FFC107'
                 },
                 background: '#F1F8E9',
                 text: '#33691E',
@@ -1273,7 +1319,8 @@
                     'trust-words': '#00E676',
                     'user-thoughts': '#FFC400',
                     'content-ideas': '#FF3D00',
-                    'project-analysis': '#00B0FF'
+                    'project-analysis': '#00B0FF',
+                    'promotion-tips': '#FF9A00'
                 },
                 background: '#FFFDE7',
                 text: '#3E2723',
@@ -1292,7 +1339,8 @@
                     'trust-words': '#E65100',
                     'user-thoughts': '#D84315',
                     'content-ideas': '#BF360C',
-                    'project-analysis': '#FF5722'
+                    'project-analysis': '#FF5722',
+                    'promotion-tips': '#FF7043'
                 },
                 background: '#FFF8E1',
                 text: '#5D4037',
@@ -1311,7 +1359,8 @@
                     'trust-words': '#E65100',
                     'user-thoughts': '#D84315',
                     'content-ideas': '#BF360C',
-                    'project-analysis': '#FF5722'
+                    'project-analysis': '#FF5722',
+                    'promotion-tips': '#FF7043'
                 },
                 background: '#F1F8E9',
                 text: '#33691E',
@@ -1330,7 +1379,8 @@
                     'trust-words': '#E65100',
                     'user-thoughts': '#D84315',
                     'content-ideas': '#BF360C',
-                    'project-analysis': '#FF5722'
+                    'project-analysis': '#FF5722',
+                    'promotion-tips': '#FF7043'
                 },
                 background: '#E8F5E9',
                 text: '#33691E',
@@ -1349,7 +1399,8 @@
                     'trust-words': '#E65100',
                     'user-thoughts': '#D84315',
                     'content-ideas': '#BF360C',
-                    'project-analysis': '#FF5722'
+                    'project-analysis': '#FF5722',
+                    'promotion-tips': '#FF7043'
                 },
                 background: '#E8F5E9',
                 text: '#33691E',
@@ -1368,7 +1419,8 @@
                     'trust-words': '#E65100',
                     'user-thoughts': '#D84315',
                     'content-ideas': '#BF360C',
-                    'project-analysis': '#FF5722'
+                    'project-analysis': '#FF5722',
+                    'promotion-tips': '#FF7043'
                 },
                 background: '#FFF8E1',
                 text: '#5D4037',
@@ -1387,7 +1439,8 @@
                     'trust-words': '#E65100',
                     'user-thoughts': '#D84315',
                     'content-ideas': '#BF360C',
-                    'project-analysis': '#FF5722'
+                    'project-analysis': '#FF5722',
+                    'promotion-tips': '#FF7043'
                 },
                 background: '#FFF8E1',
                 text: '#5D4037',
@@ -1406,7 +1459,8 @@
                     'trust-words': '#E65100',
                     'user-thoughts': '#D84315',
                     'content-ideas': '#BF360C',
-                    'project-analysis': '#FF5722'
+                    'project-analysis': '#FF5722',
+                    'promotion-tips': '#FF7043'
                 },
                 background: '#FFF8E1',
                 text: '#5D4037',
@@ -1425,7 +1479,8 @@
                     'trust-words': '#E65100',
                     'user-thoughts': '#D84315',
                     'content-ideas': '#BF360C',
-                    'project-analysis': '#FF5722'
+                    'project-analysis': '#FF5722',
+                    'promotion-tips': '#FF7043'
                 },
                 background: '#FFF8E1',
                 text: '#5D4037',
@@ -1444,7 +1499,8 @@
                     'trust-words': '#E65100',
                     'user-thoughts': '#D84315',
                     'content-ideas': '#BF360C',
-                    'project-analysis': '#FF5722'
+                    'project-analysis': '#FF5722',
+                    'promotion-tips': '#FF7043'
                 },
                 background: '#FFF8E1',
                 text: '#5D4037',
@@ -1463,7 +1519,8 @@
                     'trust-words': '#E65100',
                     'user-thoughts': '#D84315',
                     'content-ideas': '#BF360C',
-                    'project-analysis': '#FF5722'
+                    'project-analysis': '#FF5722',
+                    'promotion-tips': '#FF7043'
                 },
                 background: '#FFF8E1',
                 text: '#5D4037',
@@ -1482,7 +1539,8 @@
                     'trust-words': '#E65100',
                     'user-thoughts': '#D84315',
                     'content-ideas': '#BF360C',
-                    'project-analysis': '#FF5722'
+                    'project-analysis': '#FF5722',
+                    'promotion-tips': '#FF7043'
                 },
                 background: '#FFF8E1',
                 text: '#5D4037',
@@ -1497,13 +1555,14 @@
             'high-pay': '高付费人群分析',
             'search-intent': '高意向搜索需求',
             'pre-needs': '前置需求分析',
-            'low-competition': '低竞争用户人群分析',
+            'low-competition': '低竞争用户人群',
             'selling-points': '卖点分析',
             'diff-service': '差异化服务卖点分析',
             'trust-words': '信任话术分析',
             'user-thoughts': '用户心理分析',
             'content-ideas': '引流笔记思路',
-            'project-analysis': '项目分析介绍'
+            'project-analysis': '项目分析介绍',
+            'promotion-tips': '宣传建议分析'
         };
         
         // 解释映射 - 更通俗的版本
@@ -1518,7 +1577,8 @@
             'trust-words': '做前端内容，不仅要让人看到我们，更要让人信任我们，建立信任是完成转化的核心。通过巧妙的话术，展示我们的专业性、经验和价值，能快速拉近与潜在客户的距离。这个工具能够给出很多信任话术的参考。',
             'user-thoughts': '这是揭秘用户脑子里在想啥、担心啥、最在乎啥。好比相亲，了解对方喜好和顾虑才能投其所好。知道用户购买时的心理活动，咱们就能打消他们的疑虑、强化他们的期待，设计更有共鸣的营销内容，事半功倍。',
             'content-ideas': '这是设计能吸引目标用户、让他们主动来找你的内容创意。就像钓鱼，得用对鱼饵才能钓到想要的鱼。好的引流内容能激发用户的好奇心和分享欲，吸引他们主动私信咨询，顺利引导到私域继续深入沟通，提高转化率。',
-            'project-analysis': '这是对项目进行全面体检，看看它值不值得投入时间精力和金钱。就像创业前先考察市场，免得热情劲过后发现是个无底洞。好的项目分析能帮咱们看清项目的真实前景和风险，避免盲目跟风和投资亏损，做出更靠谱的决策。'
+            'project-analysis': '这是对项目进行全面体检，看看它值不值得投入时间精力和金钱。就像创业前先考察市场，免得热情劲过后发现是个无底洞。好的项目分析能帮咱们看清项目的真实前景和风险，避免盲目跟风和投资亏损，做出更靠谱的决策。',
+            'promotion-tips': '这个工具是帮我们去生成各种宣传的建议，能够更好的吸引客户并转化客户。'
         };
         
         // 获取颜色
@@ -2536,7 +2596,8 @@ function exportAllLongImages() {
         'trust-words',
         'user-thoughts', 
         'content-ideas', 
-        'project-analysis'
+        'project-analysis',
+        'promotion-tips'
     ];
     
     // 过滤出有内容的模块
@@ -2816,7 +2877,8 @@ function exportAllShortImages() {
         'trust-words',
         'user-thoughts', 
         'content-ideas', 
-        'project-analysis'
+        'project-analysis',
+        'promotion-tips'
     ];
     
     // 过滤出有内容的模块
@@ -2965,7 +3027,8 @@ function exportAllShortImages() {
                 'trust-words',
                 'user-thoughts', 
                 'content-ideas', 
-                'project-analysis'
+                'project-analysis',
+                'promotion-tips'
             ];
             
             tabs.forEach(tab => {
@@ -3465,8 +3528,7 @@ function exportAllShortImages() {
     <script>
         // 清空所有模块内容
         function clearAllContent() {
-            // 获取所有模块ID
-            const moduleIds = [
+            const tabs = [
                 'user-needs', 
                 'high-pay', 
                 'search-intent', 
@@ -3477,17 +3539,23 @@ function exportAllShortImages() {
                 'trust-words',
                 'user-thoughts', 
                 'content-ideas', 
-                'project-analysis'
+                'project-analysis',
+                'promotion-tips'
             ];
             
-            // 确认对话框
-            if (confirm('确定要清空所有模块的内容吗？此操作不可恢复！')) {
-                // 遍历所有模块并清空内容
-                moduleIds.forEach(tabId => {
-                    clearEditor(tabId);
-                });
-                alert('已清空所有模块内容！');
+            if (!confirm('确定要清空所有模块的内容吗？此操作无法撤销。')) {
+                return;
             }
+            
+            tabs.forEach(tab => clearEditor(tab));
+            
+            const progressIndicator = document.getElementById('progress-indicator');
+            progressIndicator.style.display = 'block';
+            progressIndicator.textContent = '已清空所有模块内容';
+            
+            setTimeout(() => {
+                progressIndicator.style.display = 'none';
+            }, 2000);
         }
     </script>
 </body>
