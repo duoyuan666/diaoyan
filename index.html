@@ -1853,36 +1853,43 @@
             });
         }
 
-        // 文本换行函数
+        // 改进文本换行函数，确保能处理长文本
         function wrapText(context, text, x, y, maxWidth, lineHeight) {
-            let lines = [];
-            let currentLine = '';
+            // 处理换行符
+            const paragraphs = text.split('\n');
+            let currentY = y;
             
-            // 处理中文和英文混合内容
-            for (let i = 0; i < text.length; i++) {
-                const char = text[i];
-                const testWidth = context.measureText(currentLine + char).width;
-                
-                if (testWidth > maxWidth && currentLine) {
-                    lines.push(currentLine);
-                    currentLine = char;
-                } else {
-                    currentLine += char;
+            for (let i = 0; i < paragraphs.length; i++) {
+                const paragraph = paragraphs[i];
+                if (paragraph === '') {
+                    currentY += lineHeight * 0.5;
+                    continue;
                 }
+                
+                let words = paragraph.split('');
+                let line = '';
+                
+                // 逐字检查是否需要换行
+                for (let n = 0; n < words.length; n++) {
+                    const testLine = line + words[n];
+                    const metrics = context.measureText(testLine);
+                    const testWidth = metrics.width;
+                    
+                    if (testWidth > maxWidth && n > 0) {
+                        context.fillText(line, x, currentY);
+                        line = words[n];
+                        currentY += lineHeight;
+                    } else {
+                        line = testLine;
+                    }
+                }
+                
+                // 绘制最后一行
+                context.fillText(line, x, currentY);
+                currentY += lineHeight;
             }
             
-            if (currentLine) {
-                lines.push(currentLine);
-            }
-            
-            // 绘制每一行
-            let newY = y;
-            for (let i = 0; i < lines.length; i++) {
-                context.fillText(lines[i], x, newY);
-                newY += lineHeight;
-            }
-            
-            return newY;
+            return currentY;
         }
         
         // 移除增强版文本换行函数
@@ -2331,38 +2338,497 @@
             }
         }
         
-// 生成长图（将所有内容拼接成一张图）
-function generateLongImage(tabId) {
-    try {
-        const progressIndicator = document.getElementById('progress-indicator');
-        progressIndicator.style.display = 'block';
-        progressIndicator.textContent = '正在生成长图，请稍候...';
-        
-        const editor = document.getElementById(`${tabId}-editor`);
-        const text = editor.value.trim();
-        
-        if (!text) {
-            alert('请先输入或粘贴内容');
-            progressIndicator.style.display = 'none';
-            return;
-        }
-        
-        // 清理前缀和markdown标记
-        let cleanedText = text.replace(/^好的[，,].*?[。\n]/, '');
-        cleanedText = cleanedText.replace(/^我来分析.*?[。\n]/, '');
-        cleanedText = cleanedText.replace(/##/g, ''); // 去除所有##标记
-        cleanedText = cleanedText.replace(/\n#+\s*/g, '\n'); // 去除可能的markdown标题标记
-        
-        // 使用setTimeout确保UI更新，并防止浏览器挂起
-        setTimeout(() => {
+        // 生成长图（将所有内容拼接成一张图）
+        function generateLongImage(tabId) {
             try {
-                // 创建临时画布用于测量和绘制
+                const editor = document.getElementById(`${tabId}-editor`);
+                const text = editor.value.trim();
+                
+                if (!text) {
+                    alert('请先输入或粘贴内容');
+                    return;
+                }
+                
+                const progressIndicator = document.getElementById('progress-indicator');
+                progressIndicator.style.display = 'block';
+                progressIndicator.textContent = '正在生成长图，请稍候...';
+                
+                // 清空多图预览，准备添加新图片
+                clearMultiPreview();
+                
+                // 清理前缀和markdown标记
+                let cleanedText = text.replace(/^好的[，,].*?[。\n]/, '');
+                cleanedText = cleanedText.replace(/^我来分析.*?[。\n]/, '');
+                cleanedText = cleanedText.replace(/##/g, ''); // 去除所有##标记
+                cleanedText = cleanedText.replace(/\n#+\s*/g, '\n'); // 去除可能的markdown标题标记
+                
+                // 分析文本，计算所需高度
+                const paragraphs = cleanedText.split('\n');
+                
+                // 获取用户设置
+                const fontSize = getFontSize(tabId);
+                const lineHeight = getLineHeight(tabId);
+                const title = getTitle(tabId);
+                const explanation = getExplanation(tabId);
+                const themeColor = getColorForTab(tabId);
+                const bgColor = getBackgroundColor(tabId);
+                const textColor = getTextColor(tabId);
+                const titleBgStyle = getTitleBackgroundStyle(tabId);
+                const titleTextColor = getTitleTextColor(tabId);
+                
+                // Canvas尺寸设置
+                const width = 900; // 固定宽度
+                const headerHeight = 220; // 标题区域高度
+                const maxContentHeight = 15000; // 单个Canvas最大高度，避免浏览器限制
+                const maxPageHeight = maxContentHeight - headerHeight; // 内容区最大高度
+                const padding = 50; // 内边距
+                
+                // 分页处理
+                let pages = [];
+                let currentPage = [];
+                let estimatedHeight = 0;
+                
+                // 先将解释文本加入，不计入分页
+                if (explanation) {
+                    currentPage.push("EXPLANATION:" + explanation);
+                }
+                
+                // 计算每个段落的高度并进行分页
+                for (let i = 0; i < paragraphs.length; i++) {
+                    const para = paragraphs[i];
+                    if (para.trim() === '') continue;
+                    
+                    // 估算当前段落的高度
+                    const paraHeight = estimateParagraphHeight(para, fontSize, lineHeight, width - padding * 2);
+                    
+                    // 如果当前页已经满了，创建新页
+                    if (estimatedHeight + paraHeight > maxPageHeight && currentPage.length > 1) {
+                        pages.push([...currentPage]);
+                        currentPage = [];
+                        // 复制解释文本到新页面
+                        if (explanation) {
+                            currentPage.push("EXPLANATION:" + explanation);
+                        }
+                        estimatedHeight = 0;
+                    }
+                    
+                    // 添加当前段落到页面
+                    currentPage.push(para);
+                    estimatedHeight += paraHeight;
+                }
+                
+                // 添加最后一页
+                if (currentPage.length > 0) {
+                    pages.push([...currentPage]);
+                }
+                
+                console.log(`内容将分为 ${pages.length} 页图片生成`);
+                
+                // 创建一个隐藏的Canvas元素
+                let canvas = document.getElementById('image-canvas');
+                if (!canvas) {
+                    canvas = document.createElement('canvas');
+                    canvas.id = 'image-canvas';
+                    canvas.style.display = 'none';
+                    document.body.appendChild(canvas);
+                }
+                
+                // 处理所有页面图像生成
+                const images = [];
+                let currentPageIndex = 0;
+                
+                function processNextPage() {
+                    if (currentPageIndex >= pages.length) {
+                        // 所有页面处理完毕，创建最终长图
+                        combineImages();
+                        return;
+                    }
+                    
+                    progressIndicator.textContent = `正在生成第 ${currentPageIndex + 1}/${pages.length} 页...`;
+                    const pageContent = pages[currentPageIndex];
+                    
+                    // 计算当前页高度
+                    let pageHeight = headerHeight;
+                    for (const para of pageContent) {
+                        if (para.startsWith("EXPLANATION:")) continue; // 解释文本在顶部单独处理
+                        pageHeight += estimateParagraphHeight(para, fontSize, lineHeight, width - padding * 2) + lineHeight * 0.3;
+                    }
+                    pageHeight += padding; // 底部留白
+                    
+                    // 设置Canvas尺寸
+                    canvas.width = width;
+                    canvas.height = pageHeight;
+                    const ctx = canvas.getContext('2d');
+                    
+                    // 清空画布
+                    ctx.clearRect(0, 0, width, pageHeight);
+                    
+                    // 绘制背景
+                    ctx.fillStyle = bgColor;
+                    ctx.fillRect(0, 0, width, pageHeight);
+                    
+                    // 绘制标题区域
+                    if (titleBgStyle === 'gradient') {
+                        // 顶部渐变
+                        const gradient = ctx.createLinearGradient(0, 0, 0, headerHeight);
+                        gradient.addColorStop(0, themeColor);  
+                        gradient.addColorStop(1, bgColor);
+                        ctx.fillStyle = gradient;
+                        ctx.fillRect(0, 0, width, headerHeight);
+                    } else {
+                        // 纯色标题背景
+                        ctx.fillStyle = themeColor;
+                        ctx.fillRect(0, 0, width, headerHeight * 0.75);
+                    }
+                    
+                    // 绘制标题
+                    ctx.fillStyle = titleTextColor;
+                    ctx.font = 'bold 40px Arial, "Microsoft YaHei", "微软雅黑"';
+                    ctx.fillText(title + '分析', padding, 80);
+                    
+                    // 为长图添加页码标记
+                    ctx.font = '24px Arial, "Microsoft YaHei", "微软雅黑"';
+                    if (pages.length > 1) {
+                        ctx.fillText(`(${currentPageIndex + 1}/${pages.length})`, width - 120, 80);
+                    } else {
+                        ctx.fillText('(完整版)', width - 120, 80);
+                    }
+                    
+                    // 渲染解释文本（只在第1页显示）
+                    if (currentPageIndex === 0) {
+                        for (const para of pageContent) {
+                            if (para.startsWith("EXPLANATION:")) {
+                                const explanationText = para.substring("EXPLANATION:".length);
+                                ctx.fillStyle = '#333333';
+                                ctx.font = `${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
+                                wrapText(ctx, explanationText, padding, 130, width - padding * 2, lineHeight);
+                                break;
+                            }
+                        }
+                    }
+                    
+                    // 开始渲染内容
+                    let y = headerHeight + 20;
+                    
+                    // 渲染段落内容
+                    for (const para of pageContent) {
+                        if (para.startsWith("EXPLANATION:")) continue; // 解释文本已单独处理
+                        if (para.trim() === '') {
+                            y += lineHeight * 0.5;
+                            continue;
+                        }
+                        
+                        // 特殊格式处理
+                        // 1. 数字标题 (如 "1. 标题")
+                        if (/^\d+[\.\、]/.test(para.trim())) {
+                            ctx.fillStyle = themeColor;
+                            ctx.font = `bold ${fontSize+6}px Arial, "Microsoft YaHei", "微软雅黑"`;
+                            y = wrapText(ctx, para.trim(), padding, y, width - padding * 2, lineHeight * 1.2);
+                            y += lineHeight * 0.5;
+                            
+                            // 重置样式
+                            ctx.fillStyle = '#333333';
+                            ctx.font = `${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
+                        } 
+                        // 2. 无序列表项
+                        else if (/^\s*[-•*⦿◉◆◇○●✓☑]/.test(para.trim())) {
+                            const trimmedPara = para.trim();
+                            
+                            // 使用全局定义的列表符号
+                            let bulletSymbol = getBulletSymbol() + ' ';
+                            const content = trimmedPara.replace(/^[-•*⦿◉◆◇○●✓☑]\s*/, '');
+                            
+                            // 使用主题色绘制符号
+                            if (isBulletColorful()) {
+                                ctx.fillStyle = themeColor;
+                            } else {
+                                ctx.fillStyle = '#333333';
+                            }
+                            
+                            ctx.font = `bold ${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
+                            ctx.fillText(bulletSymbol, padding, y);
+                            
+                            const bulletWidth = ctx.measureText(bulletSymbol).width;
+                            
+                            // 绘制文本内容
+                            ctx.fillStyle = '#333333';
+                            ctx.font = `${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
+                            y = wrapText(ctx, content, padding + bulletWidth, y, width - padding * 2 - bulletWidth, lineHeight);
+                            y += lineHeight * 0.3;
+                        }
+                        // 3. 用户角度的心声
+                        else if (para.trim().startsWith('用户角度的心声：')) {
+                            // 分离冒号前后的部分
+                            const colonIndex = para.indexOf('：');
+                            const beforeColon = para.substring(0, colonIndex + 1);
+                            const afterColon = para.substring(colonIndex + 1);
+                            
+                            // 冒号前的部分使用加粗样式
+                            ctx.fillStyle = '#333333';
+                            ctx.font = `bold ${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
+                            ctx.fillText(beforeColon, padding, y);
+                            
+                            const beforeWidth = ctx.measureText(beforeColon).width;
+                            
+                            // 冒号后的部分使用普通样式
+                            ctx.font = `${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
+                            
+                            // 如果冒号后内容较长，另起一行
+                            if (afterColon.length > 20 || beforeWidth + ctx.measureText(afterColon).width > width - padding * 2) {
+                                y += lineHeight;
+                                y = wrapText(ctx, afterColon, padding, y, width - padding * 2, lineHeight);
+                            } else {
+                                // 短内容接着冒号后显示
+                                ctx.fillText(afterColon, padding + beforeWidth, y);
+                                y += lineHeight;
+                            }
+                            
+                            // 重置样式
+                            ctx.fillStyle = '#333333';
+                            ctx.font = `${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
+                        }
+                        // 4. 冒号标题
+                        else if (para.includes('：') && para.indexOf('：') < 30) {
+                            // 分离冒号前后的部分
+                            const colonIndex = para.indexOf('：');
+                            const beforeColon = para.substring(0, colonIndex + 1);
+                            const afterColon = para.substring(colonIndex + 1);
+                            
+                            // 使用主题色绘制冒号前的部分
+                            ctx.fillStyle = themeColor;
+                            ctx.font = `bold ${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
+                            ctx.fillText(beforeColon, padding, y);
+                            
+                            const beforeWidth = ctx.measureText(beforeColon).width;
+                            
+                            // 冒号后的部分使用普通样式
+                            ctx.fillStyle = '#333333';
+                            ctx.font = `${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
+                            
+                            // 如果冒号后内容较长，另起一行
+                            if (afterColon.length > 20 || beforeWidth + ctx.measureText(afterColon).width > width - padding * 2) {
+                                y += lineHeight;
+                                y = wrapText(ctx, afterColon, padding, y, width - padding * 2, lineHeight);
+                            } else {
+                                // 短内容接着冒号后显示
+                                ctx.fillText(afterColon, padding + beforeWidth, y);
+                                y += lineHeight;
+                            }
+                        }
+                        // 5. 普通段落
+                        else {
+                            ctx.fillStyle = '#333333';
+                            ctx.font = `${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
+                            y = wrapText(ctx, para.trim(), padding, y, width - padding * 2, lineHeight);
+                            y += lineHeight * 0.3;
+                        }
+                    }
+                    
+                    // 在底部添加水印
+                    ctx.fillStyle = 'rgba(0,0,0,0.1)';
+                    ctx.font = '14px Arial, "Microsoft YaHei", "微软雅黑"';
+                    ctx.fillText('营销分析工具生成', width - 150, pageHeight - 20);
+                    
+                    // 保存当前页图像
+                    const imageData = canvas.toDataURL('image/png');
+                    images.push({
+                        url: imageData,
+                        height: pageHeight
+                    });
+                    
+                    // 处理下一页
+                    currentPageIndex++;
+                    setTimeout(processNextPage, 10); // 短暂延迟，避免UI阻塞
+                }
+                
+                // 合并所有页面图像为一个长图
+                function combineImages() {
+                    progressIndicator.textContent = '正在合并所有页面...';
+                    
+                    // 计算总高度
+                    let totalHeight = 0;
+                    for (const img of images) {
+                        totalHeight += img.height;
+                    }
+                    
+                    // 创建合并画布
+                    const finalCanvas = document.createElement('canvas');
+                    finalCanvas.width = width;
+                    finalCanvas.height = totalHeight;
+                    const finalCtx = finalCanvas.getContext('2d');
+                    
+                    // 逐页绘制到合并画布
+                    let currentY = 0;
+                    for (let i = 0; i < images.length; i++) {
+                        // 创建图像对象以绘制到合并画布
+                        const img = new Image();
+                        img.src = images[i].url;
+                        
+                        // 等待图像加载完成后绘制
+                        img.onload = function() {
+                            finalCtx.drawImage(img, 0, currentY);
+                            currentY += images[i].height;
+                            
+                            // 如果是最后一个图像，完成处理
+                            if (i === images.length - 1) {
+                                finalizeLongImage();
+                            }
+                        };
+                        
+                        // 直接绘制（不等待），以防onload不触发
+                        finalCtx.drawImage(img, 0, currentY);
+                        currentY += images[i].height;
+                        
+                        // 如果是最后一个图像，调用完成处理
+                        if (i === images.length - 1) {
+                            // 延迟一点以确保绘制完成
+                            setTimeout(finalizeLongImage, 100);
+                        }
+                    }
+                }
+                
+                // 完成长图处理
+                function finalizeLongImage() {
+                    try {
+                        // 获取合并后的图像数据
+                        const finalCanvas = document.createElement('canvas');
+                        finalCanvas.width = width;
+                        
+                        // 如果只有一页，直接使用该页
+                        if (images.length === 1) {
+                            const imageData = images[0].url;
+                            
+                            // 显示在预览区域
+                            document.getElementById(`${tabId}-preview`).style.display = 'flex';
+                            document.getElementById(`${tabId}-image`).src = imageData;
+                            
+                            // 添加到多图预览
+                            const displayTitle = getTitle(tabId) + '长图';
+                            addImageToMultiPreview(imageData, displayTitle, 1, 1);
+                        } else {
+                            // 多页情况：为每页创建单独的预览
+                            for (let i = 0; i < images.length; i++) {
+                                const pageImage = images[i].url;
+                                
+                                // 显示第一页在主预览区域
+                                if (i === 0) {
+                                    document.getElementById(`${tabId}-preview`).style.display = 'flex';
+                                    document.getElementById(`${tabId}-image`).src = pageImage;
+                                }
+                                
+                                // 添加所有页到多图预览
+                                const displayTitle = getTitle(tabId) + '长图';
+                                addImageToMultiPreview(pageImage, displayTitle, i + 1, images.length);
+                            }
+                        }
+                        
+                        // 保存内容到localStorage
+                        try {
+                            localStorage.setItem(`marketingTool-${tabId}`, text);
+                        } catch (e) {
+                            console.warn('无法保存到localStorage', e);
+                        }
+                        
+                        progressIndicator.style.display = 'none';
+                    } catch (error) {
+                        console.error('完成长图生成时出错:', error);
+                        alert('生成长图时出错: ' + error.message);
+                        progressIndicator.style.display = 'none';
+                    }
+                }
+                
+                // 开始处理第一页
+                processNextPage();
+            } catch (error) {
+                console.error('生成长图时出错:', error);
+                alert('生成图片时出错: ' + error.message);
+                document.getElementById('progress-indicator').style.display = 'none';
+            }
+        }
+
+        // 导出所有模块长图
+        function exportAllLongImages() {
+            const progressIndicator = document.getElementById('progress-indicator');
+            progressIndicator.style.display = 'block';
+            progressIndicator.textContent = '正在准备所有模块长图，请稍候...';
+            
+            // 获取所有模块ID
+            const moduleIds = [
+                'user-needs', 
+                'high-pay', 
+                'search-intent', 
+                'pre-needs', 
+                'low-competition',
+                'selling-points', 
+                'diff-service',
+                'trust-words',
+                'user-thoughts', 
+                'content-ideas', 
+                'project-analysis',
+                'promotion-tips'
+            ];
+            
+            // 过滤出有内容的模块
+            const modulesWithContent = moduleIds.filter(id => {
+                const editor = document.getElementById(`${id}-editor`);
+                return editor && editor.value.trim().length > 0;
+            });
+            
+            if (modulesWithContent.length === 0) {
+                progressIndicator.style.display = 'none';
+                alert('没有找到任何有内容的模块，请先填写内容');
+                return;
+            }
+            
+            // 创建ZIP包
+            const zip = new JSZip();
+            let processedCount = 0;
+            
+            // 更新进度信息
+            progressIndicator.textContent = `正在处理 ${modulesWithContent.length} 个模块，已完成: 0`;
+            
+            // 处理每个模块
+            processNextModule(0);
+            
+            function processNextModule(index) {
+                if (index >= modulesWithContent.length) {
+                    // 所有模块已处理完毕，生成并下载ZIP
+                    progressIndicator.textContent = '正在生成ZIP包，请稍候...';
+                    
+                    zip.generateAsync({type: 'blob'}).then(function(content) {
+                        const link = document.createElement('a');
+                        link.href = URL.createObjectURL(content);
+                        link.download = '所有模块长图.zip';
+                        link.click();
+                        
+                        progressIndicator.style.display = 'none';
+                    }).catch(function(error) {
+                        console.error('生成ZIP出错:', error);
+                        progressIndicator.style.display = 'none';
+                        alert('生成ZIP包时出错: ' + error.message);
+                    });
+                    
+                    return;
+                }
+                
+                const tabId = modulesWithContent[index];
+                progressIndicator.textContent = `正在处理: ${getTitle(tabId)}，进度: ${index + 1}/${modulesWithContent.length}`;
+                
+                // 获取内容
+                const editor = document.getElementById(`${tabId}-editor`);
+                const text = editor.value.trim();
+                
+                // 清理前缀和markdown标记
+                let cleanedText = text.replace(/^好的[，,].*?[。\n]/, '');
+                cleanedText = cleanedText.replace(/^我来分析.*?[。\n]/, '');
+                cleanedText = cleanedText.replace(/##/g, ''); // 去除所有##标记
+                cleanedText = cleanedText.replace(/\n#+\s*/g, '\n'); // 去除可能的markdown标题标记
+                
+                // 创建临时画布
                 const canvas = document.createElement('canvas');
                 const width = 900;
-                
-                // 设置临时画布大小 - 先设一个足够大的尺寸
                 canvas.width = width;
-                canvas.height = 8000; // 临时设置一个非常大的高度，确保足够容纳内容
+                canvas.height = 8000; // 临时大尺寸
                 
                 const ctx = canvas.getContext('2d');
                 
@@ -2370,7 +2836,7 @@ function generateLongImage(tabId) {
                 const fontSize = getFontSize(tabId);
                 const lineHeight = getLineHeight(tabId);
                 
-                // 获取解释文本
+                // 获取解释文本和主题色
                 const explanation = getExplanation(tabId);
                 const themeColor = getColorForTab(tabId);
                 const title = getTitle(tabId);
@@ -2386,15 +2852,22 @@ function generateLongImage(tabId) {
                 ctx.fillStyle = '#ffffff';
                 ctx.fillRect(0, 0, width, 8000);
                 
-                // 计算标题区域高度并增加
+                // 计算标题区域高度
                 const headerHeight = 240; // 恢复原始标题区域高度
                 
-                // 绘制顶部渐变
-                const gradient = ctx.createLinearGradient(0, 0, 0, headerHeight);
-                gradient.addColorStop(0, themeColor);  
-                gradient.addColorStop(0.5, '#ffffff');
-                ctx.fillStyle = gradient;
-                ctx.fillRect(0, 0, width, headerHeight);
+                // 绘制标题背景
+                if (titleBgStyle === 'gradient') {
+                    // 渐变背景
+                    const gradient = ctx.createLinearGradient(0, 0, 0, headerHeight);
+                    gradient.addColorStop(0, themeColor);  
+                    gradient.addColorStop(0.5, bgColor);
+                    ctx.fillStyle = gradient;
+                    ctx.fillRect(0, 0, width, headerHeight);
+                } else {
+                    // 纯色标题背景 - 增加高度
+                    ctx.fillStyle = themeColor;
+                    ctx.fillRect(0, 0, width, headerHeight * 0.7);
+                }
                 
                 // 绘制标题
                 ctx.fillStyle = '#ffffff';
@@ -2490,7 +2963,7 @@ function generateLongImage(tabId) {
                         ctx.fillStyle = '#333333';
                         ctx.font = `${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
                     }
-                    // 4. 冒号标题
+                    // 3. 冒号标题
                     else if (paragraph.includes('：') && paragraph.indexOf('：') < 30) {
                         // 分离冒号前后的部分
                         const colonIndex = paragraph.indexOf('：');
@@ -2516,7 +2989,7 @@ function generateLongImage(tabId) {
                             y += lineHeight;
                         }
                     }
-                    // 5. 普通段落
+                    // 4. 普通段落
                     else {
                         ctx.fillStyle = '#333333';
                         ctx.font = `${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
@@ -2537,482 +3010,177 @@ function generateLongImage(tabId) {
                 // 从临时画布复制内容到最终画布
                 finalCtx.drawImage(canvas, 0, 0, width, finalHeight, 0, 0, width, finalHeight);
                 
-                // 获取最终图像数据
-                const imageData = finalCanvas.toDataURL('image/png');
-                
-                // 显示预览
-                const previewArea = document.getElementById(`${tabId}-preview`);
-                previewArea.style.display = 'flex';
-                const previewImage = document.getElementById(`${tabId}-image`);
-                previewImage.src = imageData;
-                
-                // 显示提示信息
-                let pageInfoElem = document.getElementById(`${tabId}-page-info`);
-                if (!pageInfoElem) {
-                    pageInfoElem = document.createElement('div');
-                    pageInfoElem.id = `${tabId}-page-info`;
-                    pageInfoElem.className = 'page-info';
-                    previewArea.appendChild(pageInfoElem);
-                }
-                pageInfoElem.textContent = `已生成长图，高度: ${finalHeight}px`;
-                
-                // 清空多图预览并添加长图
-                clearMultiPreview();
-                addImageToMultiPreview(imageData, `${getTitle(tabId)}(长图)`, 1, 1);
-                
-                // 更新右侧预览标题
-                const previewHeader = document.getElementById('preview-header');
-                previewHeader.textContent = '长图预览';
-                
-                progressIndicator.style.display = 'none';
-            } catch (error) {
-                console.error('生成长图处理过程出错:', error);
-                progressIndicator.style.display = 'none';
-                alert('生成长图时出错: ' + error.message);
-            }
-        }, 100); // 给浏览器一点时间更新UI
-    } catch (error) {
-        console.error('生成长图初始化出错:', error);
-        document.getElementById('progress-indicator').style.display = 'none';
-        alert('生成长图初始化出错: ' + error.message);
-    }
-}
-
-// 导出所有模块长图
-function exportAllLongImages() {
-    const progressIndicator = document.getElementById('progress-indicator');
-    progressIndicator.style.display = 'block';
-    progressIndicator.textContent = '正在准备所有模块长图，请稍候...';
-    
-    // 获取所有模块ID
-    const moduleIds = [
-        'user-needs', 
-        'high-pay', 
-        'search-intent', 
-        'pre-needs', 
-        'low-competition',
-        'selling-points', 
-        'diff-service',
-        'trust-words',
-        'user-thoughts', 
-        'content-ideas', 
-        'project-analysis',
-        'promotion-tips'
-    ];
-    
-    // 过滤出有内容的模块
-    const modulesWithContent = moduleIds.filter(id => {
-        const editor = document.getElementById(`${id}-editor`);
-        return editor && editor.value.trim().length > 0;
-    });
-    
-    if (modulesWithContent.length === 0) {
-        progressIndicator.style.display = 'none';
-        alert('没有找到任何有内容的模块，请先填写内容');
-        return;
-    }
-    
-    // 创建ZIP包
-    const zip = new JSZip();
-    let processedCount = 0;
-    
-    // 更新进度信息
-    progressIndicator.textContent = `正在处理 ${modulesWithContent.length} 个模块，已完成: 0`;
-    
-    // 处理每个模块
-    processNextModule(0);
-    
-    function processNextModule(index) {
-        if (index >= modulesWithContent.length) {
-            // 所有模块已处理完毕，生成并下载ZIP
-            progressIndicator.textContent = '正在生成ZIP包，请稍候...';
-            
-            zip.generateAsync({type: 'blob'}).then(function(content) {
-                const link = document.createElement('a');
-                link.href = URL.createObjectURL(content);
-                link.download = '所有模块长图.zip';
-                link.click();
-                
-                progressIndicator.style.display = 'none';
-            }).catch(function(error) {
-                console.error('生成ZIP出错:', error);
-                progressIndicator.style.display = 'none';
-                alert('生成ZIP包时出错: ' + error.message);
-            });
-            
-            return;
-        }
-        
-        const tabId = modulesWithContent[index];
-        progressIndicator.textContent = `正在处理: ${getTitle(tabId)}，进度: ${index + 1}/${modulesWithContent.length}`;
-        
-        // 获取内容
-        const editor = document.getElementById(`${tabId}-editor`);
-        const text = editor.value.trim();
-        
-        // 清理前缀和markdown标记
-        let cleanedText = text.replace(/^好的[，,].*?[。\n]/, '');
-        cleanedText = cleanedText.replace(/^我来分析.*?[。\n]/, '');
-        cleanedText = cleanedText.replace(/##/g, ''); // 去除所有##标记
-        cleanedText = cleanedText.replace(/\n#+\s*/g, '\n'); // 去除可能的markdown标题标记
-        
-        // 创建临时画布
-        const canvas = document.createElement('canvas');
-        const width = 900;
-        canvas.width = width;
-        canvas.height = 8000; // 临时大尺寸
-        
-        const ctx = canvas.getContext('2d');
-        
-        // 获取用户设置
-        const fontSize = getFontSize(tabId);
-        const lineHeight = getLineHeight(tabId);
-        
-        // 获取解释文本和主题色
-        const explanation = getExplanation(tabId);
-        const themeColor = getColorForTab(tabId);
-        const title = getTitle(tabId);
-        
-        // 获取背景颜色和标题背景样式
-        const bgColor = getBackgroundColor(tabId);
-        const titleBgStyle = getTitleBackgroundStyle(tabId);
-        
-        // 准备段落
-        const paragraphs = cleanedText.split('\n');
-        
-        // 填充白色背景
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(0, 0, width, 8000);
-        
-        // 计算标题区域高度
-        const headerHeight = 240; // 恢复原始标题区域高度
-        
-        // 绘制标题背景
-        if (titleBgStyle === 'gradient') {
-            // 渐变背景
-            const gradient = ctx.createLinearGradient(0, 0, 0, headerHeight);
-            gradient.addColorStop(0, themeColor);  
-            gradient.addColorStop(0.5, bgColor);
-            ctx.fillStyle = gradient;
-            ctx.fillRect(0, 0, width, headerHeight);
-        } else {
-            // 纯色标题背景 - 增加高度
-            ctx.fillStyle = themeColor;
-            ctx.fillRect(0, 0, width, headerHeight * 0.7);
-        }
-        
-        // 绘制标题
-        ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 40px Arial, "Microsoft YaHei", "微软雅黑"';
-        ctx.fillText(title, 50, 80);
-        
-        // 绘制解释文本
-        if (explanation) {
-            ctx.fillStyle = '#333333'; // 恢复为深色文本
-            ctx.font = `${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
-            
-            // 使用原始的文本包装函数
-            wrapText(ctx, explanation, 50, 120, width - 100, lineHeight);
-        }
-        
-        // 开始绘制内容
-        let y = headerHeight;
-        const maxWidth = width - 100;
-        
-        // 绘制所有段落并记录实际高度
-        for (const paragraph of paragraphs) {
-            if (paragraph.trim() === '') {
-                y += lineHeight * 0.5;
-                continue;
-            }
-            
-            // 特殊格式处理
-            // 1. 数字标题 (如 "1. 标题")
-            if (/^\d+[\.\、]/.test(paragraph.trim())) {
-                ctx.fillStyle = themeColor;
-                ctx.font = `bold ${fontSize+6}px Arial, "Microsoft YaHei", "微软雅黑"`;
-                y = wrapText(ctx, paragraph.trim(), 50, y, maxWidth, lineHeight * 1.2);
-                y += lineHeight * 0.5;
-                
-                // 重置样式
-                ctx.fillStyle = '#333333';
-                ctx.font = `${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
-            } 
-            // 2. 无序列表项 (以 - 或 • 或 * 等符号开头)
-            else if (/^\s*[-•*⦿◉◆◇○●✓☑]/.test(paragraph.trim())) {
-                const trimmedPara = paragraph.trim();
-                
-                // 使用全局定义的列表符号
-                let bulletSymbol = getBulletSymbol() + ' ';
-                const content = trimmedPara.replace(/^[-•*⦿◉◆◇○●✓☑]\s*/, '');
-                
-                // 使用主题色绘制符号，如果该符号可着色
-                if (isBulletColorful()) {
-                    ctx.fillStyle = themeColor;
-                } else {
-                    ctx.fillStyle = '#333333'; // 对于表情符号使用黑色
-                }
-                
-                ctx.font = `bold ${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
-                ctx.fillText(bulletSymbol, 50, y);
-                
-                const bulletWidth = ctx.measureText(bulletSymbol).width;
-                
-                // 绘制文本内容
-                ctx.fillStyle = '#333333';
-                ctx.font = `${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
-                y = wrapText(ctx, content, 50 + bulletWidth, y, maxWidth - bulletWidth, lineHeight);
-                y += lineHeight * 0.3;
-            }
-            // 3. 用户角度的心声部分
-            else if (paragraph.trim().startsWith('用户角度的心声：')) {
-                // 分离冒号前后的部分
-                const colonIndex = paragraph.indexOf('：');
-                const beforeColon = paragraph.substring(0, colonIndex + 1); // 包括冒号
-                const afterColon = paragraph.substring(colonIndex + 1);
-                
-                // 冒号前的部分使用普通加粗样式
-                ctx.fillStyle = '#333333';
-                ctx.font = `bold ${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
-                ctx.fillText(beforeColon, 50, y);
-                
-                const beforeWidth = ctx.measureText(beforeColon).width;
-                
-                // 冒号后的部分使用普通样式
-                ctx.font = `${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
-                
-                // 如果冒号后内容较长，另起一行
-                if (afterColon.length > 20 || beforeWidth + ctx.measureText(afterColon).width > maxWidth) {
-                    y += lineHeight;
-                    y = wrapText(ctx, afterColon, 50, y, maxWidth, lineHeight);
-                } else {
-                    // 短内容接着冒号后显示
-                    ctx.fillText(afterColon, 50 + beforeWidth, y);
-                    y += lineHeight;
-                }
-                
-                // 重置样式
-                ctx.fillStyle = '#333333';
-                ctx.font = `${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
-            }
-            // 3. 冒号标题
-            else if (paragraph.includes('：') && paragraph.indexOf('：') < 30) {
-                // 分离冒号前后的部分
-                const colonIndex = paragraph.indexOf('：');
-                const beforeColon = paragraph.substring(0, colonIndex + 1); // 包括冒号
-                const afterColon = paragraph.substring(colonIndex + 1);
-                
-                // 冒号前的部分加粗显示
-                ctx.fillStyle = '#333333';
-                ctx.font = `bold ${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
-                const beforeWidth = ctx.measureText(beforeColon).width;
-                ctx.fillText(beforeColon, 50, y);
-                
-                // 冒号后的部分使用普通样式
-                ctx.font = `${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
-                
-                // 如果冒号后的内容较长或包含逗号等，另起一行
-                if (afterColon.length > 30 || afterColon.includes('，') || beforeWidth + ctx.measureText(afterColon).width > maxWidth) {
-                    y += lineHeight;
-                    y = wrapText(ctx, afterColon, 50, y, maxWidth, lineHeight);
-                } else {
-                    // 短内容接着冒号后显示
-                    ctx.fillText(afterColon, 50 + beforeWidth, y);
-                    y += lineHeight;
-                }
-            }
-            // 4. 普通段落
-            else {
-                ctx.fillStyle = '#333333';
-                ctx.font = `${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
-                y = wrapText(ctx, paragraph.trim(), 50, y, maxWidth, lineHeight);
-                y += lineHeight * 0.3;
-            }
-        }
-        
-        // 最终高度（添加底部边距）
-        const finalHeight = y + 60;
-        
-        // 创建新的画布，尺寸刚好容纳内容
-        const finalCanvas = document.createElement('canvas');
-        finalCanvas.width = width;
-        finalCanvas.height = finalHeight;
-        const finalCtx = finalCanvas.getContext('2d');
-        
-        // 从临时画布复制内容到最终画布
-        finalCtx.drawImage(canvas, 0, 0, width, finalHeight, 0, 0, width, finalHeight);
-        
-        // 获取最终图像数据并转为Blob
-        finalCanvas.toBlob(function(blob) {
-            // 将图片添加到ZIP
-            zip.file(`${getTitle(tabId)}长图.png`, blob);
-            
-            // 处理下一个模块
-            processedCount++;
-            progressIndicator.textContent = `已处理 ${processedCount}/${modulesWithContent.length} 个模块`;
-            
-            // 延迟处理下一个，给UI留出时间更新
-            setTimeout(() => {
-                processNextModule(index + 1);
-            }, 200);
-        }, 'image/png');
-    }
-}
-
-// 导出所有模块短图
-function exportAllShortImages() {
-    const progressIndicator = document.getElementById('progress-indicator');
-    progressIndicator.style.display = 'block';
-    progressIndicator.textContent = '正在准备所有模块短图，请稍候...';
-    
-    // 获取所有模块ID
-    const moduleIds = [
-        'user-needs', 
-        'high-pay', 
-        'search-intent', 
-        'pre-needs', 
-        'low-competition',
-        'selling-points', 
-        'diff-service',
-        'trust-words',
-        'user-thoughts', 
-        'content-ideas', 
-        'project-analysis',
-        'promotion-tips'
-    ];
-    
-    // 过滤出有内容的模块
-    const modulesWithContent = moduleIds.filter(id => {
-        const editor = document.getElementById(`${id}-editor`);
-        return editor && editor.value.trim().length > 0;
-    });
-    
-    if (modulesWithContent.length === 0) {
-        progressIndicator.style.display = 'none';
-        alert('没有找到任何有内容的模块，请先填写内容');
-        return;
-    }
-    
-    // 创建ZIP包和计数器
-    const zip = new JSZip();
-    let processedModules = 0;
-    let totalImages = 0;
-    let processedImages = 0;
-    
-    // 存储每个模块的图片数据
-    const allImageData = {};
-    
-    // 更新进度信息
-    progressIndicator.textContent = `正在处理 ${modulesWithContent.length} 个模块...`;
-    
-    // 为每个模块创建一个临时监听器来捕获生成的图片
-    modulesWithContent.forEach((tabId, index) => {
-        // 准备捕获图片的数组
-        allImageData[tabId] = [];
-        
-        // 创建一个临时容器来存储预览图片
-        const tempContainer = document.createElement('div');
-        tempContainer.style.display = 'none';
-        document.body.appendChild(tempContainer);
-        
-        // 保存原始预览区，稍后恢复
-        const originalPreviewArea = document.getElementById(`${tabId}-preview`);
-        const originalDisplay = originalPreviewArea.style.display;
-        
-        // 临时修改预览区域的引用
-        const tempPreviewArea = document.createElement('div');
-        tempPreviewArea.id = `${tabId}-preview-temp`;
-        tempPreviewArea.style.display = 'none';
-        const tempPreviewImg = document.createElement('img');
-        tempPreviewImg.id = `${tabId}-image-temp`;
-        tempPreviewArea.appendChild(tempPreviewImg);
-        tempContainer.appendChild(tempPreviewArea);
-        
-        // 覆盖默认的addImageToMultiPreview函数，捕获生成的图片
-        const originalAddImageFunction = window.addImageToMultiPreview;
-        window.addImageToMultiPreview = function(imageData, title, page, totalPages) {
-            // 保存图片数据
-            allImageData[tabId].push({
-                url: imageData,
-                title: title,
-                page: page,
-                totalPages: totalPages
-            });
-            
-            // 如果是最后一页，触发下一个模块的处理
-            if (page === totalPages) {
-                processedModules++;
-                totalImages += totalPages;
-                
-                // 如果所有模块都处理完毕，开始创建ZIP
-                if (processedModules === modulesWithContent.length) {
-                    // 恢复原始函数
-                    window.addImageToMultiPreview = originalAddImageFunction;
+                // 获取最终图像数据并转为Blob
+                finalCanvas.toBlob(function(blob) {
+                    // 将图片添加到ZIP
+                    zip.file(`${getTitle(tabId)}长图.png`, blob);
                     
-                    // 处理所有收集到的图片
-                    progressIndicator.textContent = `正在打包 ${totalImages} 张图片...`;
-                    processAllCollectedImages();
-                }
+                    // 处理下一个模块
+                    processedCount++;
+                    progressIndicator.textContent = `已处理 ${processedCount}/${modulesWithContent.length} 个模块`;
+                    
+                    // 延迟处理下一个，给UI留出时间更新
+                    setTimeout(() => {
+                        processNextModule(index + 1);
+                    }, 200);
+                }, 'image/png');
             }
-        };
-        
-        // 清空多图预览，避免干扰
-        clearMultiPreview();
-        
-        // 调用现有的生成图片函数
-        setTimeout(() => {
-            progressIndicator.textContent = `正在处理: ${getTitle(tabId)} (${index + 1}/${modulesWithContent.length})`;
-            generateImage(tabId);
-        }, index * 300); // 分散调用时间，避免浏览器卡顿
-    });
-    
-    // 处理所有收集到的图片并创建ZIP
-    function processAllCollectedImages() {
-        // 处理每个模块的图片
-        let promises = [];
-        
-        for (const tabId in allImageData) {
-            const images = allImageData[tabId];
-            
-            images.forEach((image, idx) => {
-                const promise = fetch(image.url)
-                    .then(res => res.blob())
-                    .then(blob => {
-                        // 添加到ZIP，创建模块文件夹
-                        const fileName = `${image.title}/${image.title}_第${image.page}页.png`;
-                        zip.file(fileName, blob);
-                        
-                        // 更新进度
-                        processedImages++;
-                        progressIndicator.textContent = `正在打包: ${processedImages}/${totalImages} 张图片`;
-                    });
-                
-                promises.push(promise);
-            });
         }
-        
-        // 当所有图片都处理完毕后生成ZIP
-        Promise.all(promises).then(() => {
-            progressIndicator.textContent = '正在生成ZIP包，请稍候...';
+
+        // 导出所有模块短图
+        function exportAllShortImages() {
+            const progressIndicator = document.getElementById('progress-indicator');
+            progressIndicator.style.display = 'block';
+            progressIndicator.textContent = '正在准备所有模块短图，请稍候...';
             
-            zip.generateAsync({type: 'blob'}).then(function(content) {
-                const link = document.createElement('a');
-                link.href = URL.createObjectURL(content);
-                link.download = '所有模块短图.zip';
-                link.click();
-                
-                progressIndicator.style.display = 'none';
-                
-                // 恢复原始的多图预览函数和UI
-                clearMultiPreview();
+            // 获取所有模块ID
+            const moduleIds = [
+                'user-needs', 
+                'high-pay', 
+                'search-intent', 
+                'pre-needs', 
+                'low-competition',
+                'selling-points', 
+                'diff-service',
+                'trust-words',
+                'user-thoughts', 
+                'content-ideas', 
+                'project-analysis',
+                'promotion-tips'
+            ];
+            
+            // 过滤出有内容的模块
+            const modulesWithContent = moduleIds.filter(id => {
+                const editor = document.getElementById(`${id}-editor`);
+                return editor && editor.value.trim().length > 0;
             });
-        }).catch(error => {
-            console.error('打包图片时出错:', error);
-            progressIndicator.style.display = 'none';
-            alert('生成ZIP包时出错: ' + error.message);
-        });
-    }
-}
+            
+            if (modulesWithContent.length === 0) {
+                progressIndicator.style.display = 'none';
+                alert('没有找到任何有内容的模块，请先填写内容');
+                return;
+            }
+            
+            // 创建ZIP包和计数器
+            const zip = new JSZip();
+            let processedModules = 0;
+            let totalImages = 0;
+            let processedImages = 0;
+            
+            // 存储每个模块的图片数据
+            const allImageData = {};
+            
+            // 更新进度信息
+            progressIndicator.textContent = `正在处理 ${modulesWithContent.length} 个模块...`;
+            
+            // 为每个模块创建一个临时监听器来捕获生成的图片
+            modulesWithContent.forEach((tabId, index) => {
+                // 准备捕获图片的数组
+                allImageData[tabId] = [];
+                
+                // 创建一个临时容器来存储预览图片
+                const tempContainer = document.createElement('div');
+                tempContainer.style.display = 'none';
+                document.body.appendChild(tempContainer);
+                
+                // 保存原始预览区，稍后恢复
+                const originalPreviewArea = document.getElementById(`${tabId}-preview`);
+                const originalDisplay = originalPreviewArea.style.display;
+                
+                // 临时修改预览区域的引用
+                const tempPreviewArea = document.createElement('div');
+                tempPreviewArea.id = `${tabId}-preview-temp`;
+                tempPreviewArea.style.display = 'none';
+                const tempPreviewImg = document.createElement('img');
+                tempPreviewImg.id = `${tabId}-image-temp`;
+                tempPreviewArea.appendChild(tempPreviewImg);
+                tempContainer.appendChild(tempPreviewArea);
+                
+                // 覆盖默认的addImageToMultiPreview函数，捕获生成的图片
+                const originalAddImageFunction = window.addImageToMultiPreview;
+                window.addImageToMultiPreview = function(imageData, title, page, totalPages) {
+                    // 保存图片数据
+                    allImageData[tabId].push({
+                        url: imageData,
+                        title: title,
+                        page: page,
+                        totalPages: totalPages
+                    });
+                    
+                    // 如果是最后一页，触发下一个模块的处理
+                    if (page === totalPages) {
+                        processedModules++;
+                        totalImages += totalPages;
+                        
+                        // 如果所有模块都处理完毕，开始创建ZIP
+                        if (processedModules === modulesWithContent.length) {
+                            // 恢复原始函数
+                            window.addImageToMultiPreview = originalAddImageFunction;
+                            
+                            // 处理所有收集到的图片
+                            progressIndicator.textContent = `正在打包 ${totalImages} 张图片...`;
+                            processAllCollectedImages();
+                        }
+                    }
+                };
+                
+                // 清空多图预览，避免干扰
+                clearMultiPreview();
+                
+                // 调用现有的生成图片函数
+                setTimeout(() => {
+                    progressIndicator.textContent = `正在处理: ${getTitle(tabId)} (${index + 1}/${modulesWithContent.length})`;
+                    generateImage(tabId);
+                }, index * 300); // 分散调用时间，避免浏览器卡顿
+            });
+            
+            // 处理所有收集到的图片并创建ZIP
+            function processAllCollectedImages() {
+                // 处理每个模块的图片
+                let promises = [];
+                
+                for (const tabId in allImageData) {
+                    const images = allImageData[tabId];
+                    
+                    images.forEach((image, idx) => {
+                        const promise = fetch(image.url)
+                            .then(res => res.blob())
+                            .then(blob => {
+                                // 添加到ZIP，创建模块文件夹
+                                const fileName = `${image.title}/${image.title}_第${image.page}页.png`;
+                                zip.file(fileName, blob);
+                                
+                                // 更新进度
+                                processedImages++;
+                                progressIndicator.textContent = `正在打包: ${processedImages}/${totalImages} 张图片`;
+                            });
+                        
+                        promises.push(promise);
+                    });
+                }
+                
+                // 当所有图片都处理完毕后生成ZIP
+                Promise.all(promises).then(() => {
+                    progressIndicator.textContent = '正在生成ZIP包，请稍候...';
+                    
+                    zip.generateAsync({type: 'blob'}).then(function(content) {
+                        const link = document.createElement('a');
+                        link.href = URL.createObjectURL(content);
+                        link.download = '所有模块短图.zip';
+                        link.click();
+                        
+                        progressIndicator.style.display = 'none';
+                        
+                        // 恢复原始的多图预览函数和UI
+                        clearMultiPreview();
+                    });
+                }).catch(error => {
+                    console.error('打包图片时出错:', error);
+                    progressIndicator.style.display = 'none';
+                    alert('生成ZIP包时出错: ' + error.message);
+                });
+            }
+        }
 
         // 初始化本地存储
         function initLocalStorage() {
@@ -3501,26 +3669,85 @@ function exportAllShortImages() {
             }, 500);
         });
 
+        // 改进估算文本宽度的函数
+        function estimateTextWidth(text, fontSize) {
+            // 中文字符平均宽度约为fontSize的0.95倍
+            // 英文、数字和标点符号宽度约为fontSize的0.6倍
+            let width = 0;
+            const chineseRegex = /[\u4e00-\u9fa5]/;
+            const symbolRegex = /[，。！？；：""''（）【】「」『』〈〉《》〔〕]/;
+            
+            for (let i = 0; i < text.length; i++) {
+                const char = text[i];
+                if (chineseRegex.test(char)) {
+                    width += fontSize * 0.95; // 中文字符
+                } else if (symbolRegex.test(char)) {
+                    width += fontSize * 0.8; // 中文标点
+                } else {
+                    width += fontSize * 0.6; // 英文、数字等
+                }
+            }
+            
+            return width;
+        }
+
         // 估算段落高度函数
         function estimateParagraphHeight(paragraph, fontSize, lineHeight, maxWidth) {
             // 无序列表项的处理
             if (/^\s*[-•*⦿◉◆◇○●✓☑]/.test(paragraph.trim())) {
                 // 无序列表项用稍大的缩进和较大的行高
                 const content = paragraph.trim().replace(/^[-•*⦿◉◆◇○●✓☑]\s*/, '');
-                const bulletWidth = fontSize; // 估计符号宽度
+                const bulletWidth = fontSize * 1.5; // 增加符号宽度估计
                 
                 const lines = Math.ceil(estimateTextWidth(content, fontSize) / (maxWidth - bulletWidth - 50));
                 return lines * lineHeight * 1.2; // 给无序列表项一点额外的空间
             }
-            // 其他类型段落的处理保持不变
+            // 数字编号的段落
             else if (/^\d+[.、]/.test(paragraph.trim())) {
                 // 编号标题用更大的行高
-                const lines = Math.ceil(estimateTextWidth(paragraph, fontSize) / maxWidth);
+                const lines = Math.ceil(estimateTextWidth(paragraph.trim(), fontSize) / maxWidth);
                 return lines * lineHeight * 1.5;
-            } else {
-                // 普通段落
-                const lines = Math.ceil(estimateTextWidth(paragraph, fontSize) / maxWidth);
-                return lines * lineHeight;
+            }
+            // 冒号形式的标题或说明
+            else if (paragraph.includes('：') && paragraph.indexOf('：') < 30) {
+                const colonIndex = paragraph.indexOf('：');
+                const beforeColon = paragraph.substring(0, colonIndex + 1);
+                const afterColon = paragraph.substring(colonIndex + 1);
+                
+                // 计算冒号前后文本的宽度
+                const beforeWidth = estimateTextWidth(beforeColon, fontSize);
+                const afterWidth = estimateTextWidth(afterColon, fontSize);
+                
+                // 如果冒号后内容较短，在同一行；否则另起一行
+                if (afterColon.length > 20 || beforeWidth + afterWidth > maxWidth) {
+                    // 冒号后内容另起一行
+                    const afterLines = Math.ceil(afterWidth / maxWidth);
+                    return lineHeight * (1 + Math.max(1, afterLines));
+                } else {
+                    // 冒号前后内容在同一行
+                    return lineHeight;
+                }
+            }
+            // 用户角度的心声部分
+            else if (paragraph.trim().startsWith('用户角度的心声：')) {
+                const colonIndex = paragraph.indexOf('：');
+                const beforeColon = paragraph.substring(0, colonIndex + 1);
+                const afterColon = paragraph.substring(colonIndex + 1);
+                
+                const beforeWidth = estimateTextWidth(beforeColon, fontSize);
+                const afterWidth = estimateTextWidth(afterColon, fontSize);
+                
+                if (afterColon.length > 20 || beforeWidth + afterWidth > maxWidth) {
+                    const afterLines = Math.ceil(afterWidth / maxWidth);
+                    return lineHeight * (1 + Math.max(1, afterLines));
+                } else {
+                    return lineHeight;
+                }
+            }
+            // 普通段落
+            else {
+                const lines = Math.ceil(estimateTextWidth(paragraph.trim(), fontSize) / maxWidth);
+                return Math.max(1, lines) * lineHeight;
             }
         }
     </script>
