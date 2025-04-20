@@ -2704,286 +2704,324 @@
             return y;
         }
 
-        // 导出所有模块长图
+        // 修复导出所有模块长图的功能，确保导出图片与预览一致
         function exportAllLongImages() {
             const progressIndicator = document.getElementById('progress-indicator');
             progressIndicator.style.display = 'block';
-            progressIndicator.textContent = '正在准备所有模块长图，请稍候...';
+            progressIndicator.textContent = '正在准备导出所有模块长图...';
             
-            // 获取所有模块ID
-            const moduleIds = [
-                'user-needs', 
-                'high-pay', 
-                'search-intent', 
-                'pre-needs', 
-                'low-competition',
-                'selling-points', 
-                'diff-service',
-                'trust-words',
-                'user-thoughts', 
-                'content-ideas', 
-                'project-analysis',
-                'promotion-tips'
+            // 获取所有标签ID
+            const tabIds = [
+                'user-needs', 'high-pay', 'search-intent', 'pre-needs', 'low-competition',
+                'selling-points', 'diff-service', 'trust-words', 'user-thoughts', 
+                'content-ideas', 'project-analysis', 'promotion-tips'
             ];
             
-            // 过滤出有内容的模块
-            const modulesWithContent = moduleIds.filter(id => {
+            // 创建一个ZIP文件对象
+            const zip = new JSZip();
+            
+            // 计数器
+            let exportedCount = 0;
+            const totalCount = tabIds.filter(id => {
                 const editor = document.getElementById(`${id}-editor`);
                 return editor && editor.value.trim().length > 0;
-            });
+            }).length;
             
-            if (modulesWithContent.length === 0) {
+            if (totalCount === 0) {
                 progressIndicator.style.display = 'none';
-                alert('没有找到任何有内容的模块，请先填写内容');
+                alert('没有找到可导出的内容，请先在各模块中输入内容。');
                 return;
             }
             
-            // 创建ZIP包
-            const zip = new JSZip();
-            let processedCount = 0;
-            
-            // 更新进度信息
-            progressIndicator.textContent = `正在处理 ${modulesWithContent.length} 个模块，已完成: 0`;
-            
-            // 处理每个模块
-            processNextModule(0);
-            
-            function processNextModule(index) {
-                if (index >= modulesWithContent.length) {
-                    // 所有模块已处理完毕，生成并下载ZIP
-                    progressIndicator.textContent = '正在生成ZIP包，请稍候...';
-                    
-                    zip.generateAsync({type: 'blob'}).then(function(content) {
-                        const link = document.createElement('a');
-                        link.href = URL.createObjectURL(content);
-                        link.download = '所有模块长图.zip';
-                        link.click();
-                        
-                        progressIndicator.style.display = 'none';
-                    }).catch(function(error) {
-                        console.error('生成ZIP出错:', error);
-                        progressIndicator.style.display = 'none';
-                        alert('生成ZIP包时出错: ' + error.message);
-                    });
-                    
-                    return;
-                }
-                
-                const tabId = modulesWithContent[index];
-                progressIndicator.textContent = `正在处理: ${getTitle(tabId)}，进度: ${index + 1}/${modulesWithContent.length}`;
-                
-                // 获取内容
+            // 处理每个标签
+            tabIds.forEach((tabId, index) => {
                 const editor = document.getElementById(`${tabId}-editor`);
+                if (!editor || editor.value.trim().length === 0) return;
+                
                 const text = editor.value.trim();
+                progressIndicator.textContent = `正在处理 ${getTitle(tabId)} (${index+1}/${totalCount})...`;
                 
-                // 清理前缀和markdown标记
-                let cleanedText = text.replace(/^好的[，,].*?[。\n]/, '');
-                cleanedText = cleanedText.replace(/^我来分析.*?[。\n]/, '');
-                cleanedText = cleanedText.replace(/##/g, ''); // 去除所有##标记
-                cleanedText = cleanedText.replace(/\n#+\s*/g, '\n'); // 去除可能的markdown标题标记
-                
-                // 创建临时画布
-                const canvas = document.createElement('canvas');
-                const width = 900;
-                canvas.width = width;
-                canvas.height = 8000; // 临时大尺寸
-                
-                const ctx = canvas.getContext('2d');
-                
-                // 获取用户设置
-                const fontSize = getFontSize(tabId);
-                const lineHeight = getLineHeight(tabId);
-                
-                // 获取解释文本和主题色
-                const explanation = getExplanation(tabId);
-                const themeColor = getColorForTab(tabId);
-                const title = getTitle(tabId);
-                
-                // 获取背景颜色和标题背景样式
-                const bgColor = getBackgroundColor(tabId);
-                const titleBgStyle = getTitleBackgroundStyle(tabId);
-                
-                // 准备段落
-                const paragraphs = cleanedText.split('\n');
-                
-                // 填充白色背景
-                ctx.fillStyle = '#ffffff';
-                ctx.fillRect(0, 0, width, 8000);
-                
-                // 计算标题区域高度
-                const headerHeight = 240; // 恢复原始标题区域高度
-                
-                // 绘制标题背景
-                if (titleBgStyle === 'gradient') {
-                    // 渐变背景
-                    const gradient = ctx.createLinearGradient(0, 0, 0, headerHeight);
-                    gradient.addColorStop(0, themeColor);  
-                    gradient.addColorStop(0.5, bgColor);
-                    ctx.fillStyle = gradient;
-                    ctx.fillRect(0, 0, width, headerHeight);
-                } else {
-                    // 纯色标题背景 - 增加高度
-                    ctx.fillStyle = themeColor;
-                    ctx.fillRect(0, 0, width, headerHeight * 0.7);
-                }
-                
-                // 绘制标题
-                ctx.fillStyle = '#ffffff';
-                ctx.font = 'bold 40px Arial, "Microsoft YaHei", "微软雅黑"';
-                ctx.fillText(title, 50, 80);
-                
-                // 绘制解释文本
-                if (explanation) {
-                    ctx.fillStyle = '#333333'; // 恢复为深色文本
-                    ctx.font = `${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
-                    
-                    // 使用原始的文本包装函数
-                    wrapText(ctx, explanation, 50, 120, width - 100, lineHeight);
-                }
-                
-                // 开始绘制内容
-                let y = headerHeight;
-                const maxWidth = width - 100;
-                
-                // 绘制所有段落并记录实际高度
-                for (const paragraph of paragraphs) {
-                    if (paragraph.trim() === '') {
-                        y += lineHeight * 0.5;
-                        continue;
-                    }
-                    
-                    // 特殊格式处理
-                    // 1. 数字标题 (如 "1. 标题")
-                    if (/^\d+[\.\、]/.test(paragraph.trim())) {
-                        ctx.fillStyle = themeColor;
-                        ctx.font = `bold ${fontSize+6}px Arial, "Microsoft YaHei", "微软雅黑"`;
-                        y = wrapText(ctx, paragraph.trim(), 50, y, maxWidth, lineHeight * 1.2);
-                        y += lineHeight * 0.5;
+                // 使用异步方式处理，避免界面冻结
+                setTimeout(() => {
+                    try {
+                        // 清理文本内容
+                        let cleanedText = text.replace(/^好的[，,].*?[。\n]/, '');
+                        cleanedText = cleanedText.replace(/^我来分析.*?[。\n]/, '');
+                        cleanedText = cleanedText.replace(/##/g, '');
+                        cleanedText = cleanedText.replace(/\n#+\s*/g, '\n');
                         
-                        // 重置样式
-                        ctx.fillStyle = '#333333';
+                        // 获取设置参数
+                        const width = 900;
+                        const fontSize = getFontSize(tabId);
+                        const lineHeight = getLineHeight(tabId);
+                        const padding = 50;
+                        const headerHeight = 220;
+                        
+                        // 获取样式设置
+                        const title = getTitle(tabId);
+                        const explanation = getExplanation(tabId);
+                        const themeColor = getColorForTab(tabId);
+                        const bgColor = getBackgroundColor(tabId);
+                        const titleTextColor = getTitleTextColor(tabId);
+                        const titleBgStyle = getTitleBackgroundStyle(tabId);
+                        
+                        // 解析段落
+                        const paragraphs = cleanedText.split('\n').filter(p => p.trim() !== '');
+                        
+                        // 创建Canvas对象
+                        const canvas = document.createElement('canvas');
+                        canvas.width = width;
+                        
+                        // 使用2D绘图上下文进行文本测量
+                        const ctx = canvas.getContext('2d');
                         ctx.font = `${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
-                    } 
-                    // 2. 无序列表项 (以 - 或 • 或 * 等符号开头)
-                    else if (/^\s*[-•*⦿◉◆◇○●✓☑]/.test(paragraph.trim())) {
-                        const trimmedPara = paragraph.trim();
                         
-                        // 使用全局定义的列表符号
-                        let bulletSymbol = getBulletSymbol() + ' ';
-                        const content = trimmedPara.replace(/^[-•*⦿◉◆◇○●✓☑]\s*/, '');
+                        // 计算所需的总高度
+                        let totalHeight = headerHeight;
                         
-                        // 使用主题色绘制符号，如果该符号可着色
-                        if (isBulletColorful()) {
-                            ctx.fillStyle = themeColor;
-                        } else {
-                            ctx.fillStyle = '#333333'; // 对于表情符号使用黑色
+                        // 计算每个段落所需的高度
+                        for (const para of paragraphs) {
+                            const paraHeight = calculateParagraphHeight(ctx, para, fontSize, lineHeight, width - padding * 2);
+                            totalHeight += paraHeight + lineHeight * 0.3;
                         }
                         
-                        ctx.font = `bold ${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
-                        ctx.fillText(bulletSymbol, 50, y);
+                        // 添加底部边距
+                        totalHeight += padding;
                         
-                        const bulletWidth = ctx.measureText(bulletSymbol).width;
+                        console.log(`导出长图 ${title} 高度: ${totalHeight}px`);
                         
-                        // 绘制文本内容
-                        ctx.fillStyle = '#333333';
-                        ctx.font = `${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
-                        y = wrapText(ctx, content, 50 + bulletWidth, y, maxWidth - bulletWidth, lineHeight);
-                        y += lineHeight * 0.3;
-                    }
-                    // 3. 用户角度的心声部分
-                    else if (paragraph.trim().startsWith('用户角度的心声：')) {
-                        // 分离冒号前后的部分
-                        const colonIndex = paragraph.indexOf('：');
-                        const beforeColon = paragraph.substring(0, colonIndex + 1); // 包括冒号
-                        const afterColon = paragraph.substring(colonIndex + 1);
+                        // 设置Canvas大小并开始绘制
+                        canvas.height = totalHeight;
                         
-                        // 冒号前的部分使用普通加粗样式
-                        ctx.fillStyle = '#333333';
-                        ctx.font = `bold ${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
-                        ctx.fillText(beforeColon, 50, y);
+                        // 重新获取上下文
+                        const finalCtx = canvas.getContext('2d');
                         
-                        const beforeWidth = ctx.measureText(beforeColon).width;
+                        // 填充背景
+                        finalCtx.fillStyle = bgColor;
+                        finalCtx.fillRect(0, 0, width, totalHeight);
                         
-                        // 冒号后的部分使用普通样式
-                        ctx.font = `${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
-                        
-                        // 如果冒号后内容较长，另起一行
-                        if (afterColon.length > 20 || beforeWidth + ctx.measureText(afterColon).width > maxWidth) {
-                            y += lineHeight;
-                            y = wrapText(ctx, afterColon, 50, y, maxWidth, lineHeight);
+                        // 绘制标题区域
+                        if (titleBgStyle === 'gradient') {
+                            // 顶部渐变
+                            const gradient = finalCtx.createLinearGradient(0, 0, 0, headerHeight);
+                            gradient.addColorStop(0, themeColor);  
+                            gradient.addColorStop(1, bgColor);
+                            finalCtx.fillStyle = gradient;
+                            finalCtx.fillRect(0, 0, width, headerHeight);
                         } else {
-                            // 短内容接着冒号后显示
-                            ctx.fillText(afterColon, 50 + beforeWidth, y);
-                            y += lineHeight;
+                            // 纯色标题背景
+                            finalCtx.fillStyle = themeColor;
+                            finalCtx.fillRect(0, 0, width, headerHeight * 0.75);
                         }
                         
-                        // 重置样式
-                        ctx.fillStyle = '#333333';
-                        ctx.font = `${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
-                    }
-                    // 3. 冒号标题
-                    else if (paragraph.includes('：') && paragraph.indexOf('：') < 30) {
-                        // 分离冒号前后的部分
-                        const colonIndex = paragraph.indexOf('：');
-                        const beforeColon = paragraph.substring(0, colonIndex + 1); // 包括冒号
-                        const afterColon = paragraph.substring(colonIndex + 1);
+                        // 绘制标题
+                        finalCtx.fillStyle = titleTextColor;
+                        finalCtx.font = 'bold 40px Arial, "Microsoft YaHei", "微软雅黑"';
+                        finalCtx.fillText(title + '分析', padding, 80);
                         
-                        // 冒号前的部分加粗显示
-                        ctx.fillStyle = '#333333';
-                        ctx.font = `bold ${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
-                        const beforeWidth = ctx.measureText(beforeColon).width;
-                        ctx.fillText(beforeColon, 50, y);
+                        // 添加完整版标记
+                        finalCtx.font = '24px Arial, "Microsoft YaHei", "微软雅黑"';
+                        finalCtx.fillText('(完整版)', width - 120, 80);
                         
-                        // 冒号后的部分使用普通样式
-                        ctx.font = `${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
+                        // 绘制解释文本
+                        if (explanation) {
+                            finalCtx.fillStyle = '#333333';
+                            finalCtx.font = `${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
+                            renderText(finalCtx, explanation, padding, 130, width - padding * 2, lineHeight);
+                        }
                         
-                        // 如果冒号后的内容较长或包含逗号等，另起一行
-                        if (afterColon.length > 30 || afterColon.includes('，') || beforeWidth + ctx.measureText(afterColon).width > maxWidth) {
-                            y += lineHeight;
-                            y = wrapText(ctx, afterColon, 50, y, maxWidth, lineHeight);
-                        } else {
-                            // 短内容接着冒号后显示
-                            ctx.fillText(afterColon, 50 + beforeWidth, y);
-                            y += lineHeight;
+                        // 渲染所有段落内容
+                        let y = headerHeight + 20;
+                        
+                        for (const para of paragraphs) {
+                            // 特殊格式处理
+                            // 1. 数字标题 (如 "1. 标题")
+                            if (/^\d+[\.\、]/.test(para.trim())) {
+                                finalCtx.fillStyle = themeColor;
+                                finalCtx.font = `bold ${fontSize+6}px Arial, "Microsoft YaHei", "微软雅黑"`;
+                                y = renderText(finalCtx, para.trim(), padding, y, width - padding * 2, lineHeight * 1.2);
+                                y += lineHeight * 0.5;
+                                
+                                // 重置样式
+                                finalCtx.fillStyle = '#333333';
+                                finalCtx.font = `${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
+                            } 
+                            // 2. 无序列表项
+                            else if (/^\s*[-•*⦿◉◆◇○●✓☑]/.test(para.trim())) {
+                                const trimmedPara = para.trim();
+                                
+                                // 使用全局定义的列表符号
+                                let bulletSymbol = getBulletSymbol() + ' ';
+                                const content = trimmedPara.replace(/^[-•*⦿◉◆◇○●✓☑]\s*/, '');
+                                
+                                // 使用主题色绘制符号
+                                if (isBulletColorful()) {
+                                    finalCtx.fillStyle = themeColor;
+                                } else {
+                                    finalCtx.fillStyle = '#333333';
+                                }
+                                
+                                finalCtx.font = `bold ${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
+                                finalCtx.fillText(bulletSymbol, padding, y);
+                                
+                                const bulletWidth = finalCtx.measureText(bulletSymbol).width;
+                                
+                                // 绘制文本内容
+                                finalCtx.fillStyle = '#333333';
+                                finalCtx.font = `${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
+                                y = renderText(finalCtx, content, padding + bulletWidth, y, width - padding * 2 - bulletWidth, lineHeight);
+                                y += lineHeight * 0.3;
+                            }
+                            // 3. 用户角度的心声
+                            else if (para.trim().startsWith('用户角度的心声：')) {
+                                // 分离冒号前后的部分
+                                const colonIndex = para.indexOf('：');
+                                const beforeColon = para.substring(0, colonIndex + 1);
+                                const afterColon = para.substring(colonIndex + 1);
+                                
+                                // 冒号前的部分使用加粗样式
+                                finalCtx.fillStyle = '#333333';
+                                finalCtx.font = `bold ${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
+                                finalCtx.fillText(beforeColon, padding, y);
+                                
+                                const beforeWidth = finalCtx.measureText(beforeColon).width;
+                                
+                                // 冒号后的部分使用普通样式
+                                finalCtx.font = `${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
+                                
+                                // 如果冒号后内容较长，另起一行
+                                if (afterColon.length > 20 || beforeWidth + finalCtx.measureText(afterColon).width > width - padding * 2) {
+                                    y += lineHeight;
+                                    y = renderText(finalCtx, afterColon, padding, y, width - padding * 2, lineHeight);
+                                } else {
+                                    // 短内容接着冒号后显示
+                                    finalCtx.fillText(afterColon, padding + beforeWidth, y);
+                                    y += lineHeight;
+                                }
+                                
+                                // 重置样式
+                                finalCtx.fillStyle = '#333333';
+                                finalCtx.font = `${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
+                            }
+                            // 4. 冒号标题
+                            else if (para.includes('：') && para.indexOf('：') < 30) {
+                                // 分离冒号前后的部分
+                                const colonIndex = para.indexOf('：');
+                                const beforeColon = para.substring(0, colonIndex + 1);
+                                const afterColon = para.substring(colonIndex + 1);
+                                
+                                // 使用主题色绘制冒号前的部分
+                                finalCtx.fillStyle = themeColor;
+                                finalCtx.font = `bold ${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
+                                finalCtx.fillText(beforeColon, padding, y);
+                                
+                                const beforeWidth = finalCtx.measureText(beforeColon).width;
+                                
+                                // 冒号后的部分使用普通样式
+                                finalCtx.fillStyle = '#333333';
+                                finalCtx.font = `${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
+                                
+                                // 如果冒号后内容较长，另起一行
+                                if (afterColon.length > 20 || beforeWidth + finalCtx.measureText(afterColon).width > width - padding * 2) {
+                                    y += lineHeight;
+                                    y = renderText(finalCtx, afterColon, padding, y, width - padding * 2, lineHeight);
+                                } else {
+                                    // 短内容接着冒号后显示
+                                    finalCtx.fillText(afterColon, padding + beforeWidth, y);
+                                    y += lineHeight;
+                                }
+                            }
+                            // 5. 普通段落
+                            else {
+                                finalCtx.fillStyle = '#333333';
+                                finalCtx.font = `${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
+                                y = renderText(finalCtx, para.trim(), padding, y, width - padding * 2, lineHeight);
+                                y += lineHeight * 0.3;
+                            }
+                        }
+                        
+                        // 在底部添加水印
+                        finalCtx.fillStyle = 'rgba(0,0,0,0.1)';
+                        finalCtx.font = '14px Arial, "Microsoft YaHei", "微软雅黑"';
+                        finalCtx.fillText('营销分析工具生成', width - 150, totalHeight - 20);
+                        
+                        // 获取图像数据
+                        const imageData = canvas.toDataURL('image/png');
+                        
+                        // 添加到ZIP
+                        zip.file(`${title}分析(完整版).png`, dataURLToBlob(imageData));
+                        
+                        // 增加计数
+                        exportedCount++;
+                        
+                        // 检查是否所有任务都已完成
+                        if (exportedCount === totalCount) {
+                            finalizeZipDownload(zip);
+                        }
+                    } catch (error) {
+                        console.error(`处理模块 ${tabId} 时出错:`, error);
+                        exportedCount++;
+                        
+                        // 即使出错，也检查是否需要继续处理
+                        if (exportedCount === totalCount) {
+                            finalizeZipDownload(zip);
                         }
                     }
-                    // 4. 普通段落
-                    else {
-                        ctx.fillStyle = '#333333';
-                        ctx.font = `${fontSize}px Arial, "Microsoft YaHei", "微软雅黑"`;
-                        y = wrapText(ctx, paragraph.trim(), 50, y, maxWidth, lineHeight);
-                        y += lineHeight * 0.3;
-                    }
-                }
+                }, index * 100); // 每个模块间隔100ms处理，避免界面冻结
+            });
+        }
+
+        // 将 Data URL 转换为 Blob 对象
+        function dataURLToBlob(dataURL) {
+            const parts = dataURL.split(';base64,');
+            const contentType = parts[0].split(':')[1];
+            const raw = window.atob(parts[1]);
+            const rawLength = raw.length;
+            const uInt8Array = new Uint8Array(rawLength);
+            
+            for (let i = 0; i < rawLength; ++i) {
+                uInt8Array[i] = raw.charCodeAt(i);
+            }
+            
+            return new Blob([uInt8Array], { type: contentType });
+        }
+
+        // 完成ZIP下载
+        function finalizeZipDownload(zip) {
+            const progressIndicator = document.getElementById('progress-indicator');
+            progressIndicator.textContent = '正在生成ZIP文件，请稍候...';
+            
+            zip.generateAsync({ type: 'blob' }).then(function(content) {
+                // 创建下载链接
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(content);
+                link.download = '营销分析长图全部模块.zip';
+                link.click();
                 
-                // 最终高度（添加底部边距）
-                const finalHeight = y + 60;
+                // 释放URL对象
+                setTimeout(() => URL.revokeObjectURL(link.href), 60000);
                 
-                // 创建新的画布，尺寸刚好容纳内容
-                const finalCanvas = document.createElement('canvas');
-                finalCanvas.width = width;
-                finalCanvas.height = finalHeight;
-                const finalCtx = finalCanvas.getContext('2d');
-                
-                // 从临时画布复制内容到最终画布
-                finalCtx.drawImage(canvas, 0, 0, width, finalHeight, 0, 0, width, finalHeight);
-                
-                // 获取最终图像数据并转为Blob
-                finalCanvas.toBlob(function(blob) {
-                    // 将图片添加到ZIP
-                    zip.file(`${getTitle(tabId)}长图.png`, blob);
-                    
-                    // 处理下一个模块
-                    processedCount++;
-                    progressIndicator.textContent = `已处理 ${processedCount}/${modulesWithContent.length} 个模块`;
-                    
-                    // 延迟处理下一个，给UI留出时间更新
-                    setTimeout(() => {
-                        processNextModule(index + 1);
-                    }, 200);
-                }, 'image/png');
+                progressIndicator.style.display = 'none';
+            }).catch(function(error) {
+                console.error('生成ZIP文件时出错:', error);
+                alert('生成ZIP文件时出错: ' + error.message);
+                progressIndicator.style.display = 'none';
+            });
+        }
+
+        // 更新导出所有按钮的处理函数
+        function updateExportAllButton() {
+            const exportAllButton = document.querySelector('.export-all-button');
+            if (exportAllButton) {
+                exportAllButton.onclick = exportAllLongImages;
             }
         }
+
+        // 确保在文档加载完成后更新按钮
+        document.addEventListener('DOMContentLoaded', function() {
+            // ... existing code ...
+            updateExportAllButton();
+        });
 
         // 导出所有模块短图
         function exportAllShortImages() {
